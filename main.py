@@ -1,4 +1,5 @@
 import argparse
+from commands.add_song import add_song
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
         case 'add-pack':
             ...
         case 'add-song':
-            ...
+            add_song(args)
         case 'config':
             ...
         case 'ping':
