@@ -1,9 +1,9 @@
-import zipfile
 import os
 import shutil
 import simfile
+from .utils.download_file import download_file
 
-TEMP = '.temp'
+TEMP = '.temp/'
 SONGS = 'songs/singles'
 
 
@@ -26,11 +26,10 @@ def add_song(args):
     # clear temp directory if not empty
     cleanup()
 
-    # TODO: add support for downloading from URLs using requests
+    # download file if URL
     if args.path.startswith('http'):
-        # path = download_file(args.path)
-        print('URLs are not supported yet')
-        raise NotImplementedError
+        path = download_file(args.path)
+        print("path from download:", path)
     else:
         path = args.path
 
@@ -38,14 +37,19 @@ def add_song(args):
     if path is None:
         print('no path supplied')
         exit(1)
-    if os.path.exists(path) is False:
+    elif os.path.exists(path) is False:
         print('invalid path or URL:', path)
         exit(1)
-    if path.endswith('.zip'):  # extract song if zip file
-        with zipfile.ZipFile(args.path, 'r') as zip_ref:
-            zip_ref.extractall(TEMP)
-    if os.path.isdir(path):  # copy song if directory
+    elif os.path.isdir(path):  # copy song if directory
         shutil.copytree(path, TEMP)
+    else:
+        # Attempt to extract archive
+        os.mkdir(TEMP)
+        try:
+            shutil.unpack_archive(path, TEMP)
+        except:
+            print('Error extracting archive')
+            exit(1)
 
     # dectect valid simfile directory
     valid_dirs = []
@@ -53,6 +57,8 @@ def add_song(args):
         if "__MACOSX" in root:  # ignore macosx folders
             continue
         for file in files:
+            if file.startswith('.'):  # ignore hidden files
+                continue
             if file.endswith('.sm') or file.endswith('.ssc'):
                 valid_dirs.append(root)
                 break
@@ -71,13 +77,13 @@ def add_song(args):
 
     # rename folder to zip name if no containing folder
     if root == TEMP:
-        # TODO: make this OS agnostic
-        zip_name = args.path.split('/')[-1].split('.')[0]
+        # TODO: Test if OS agnostic
+        zip_name = os.path.basename(path).replace('.zip', '')
         shutil.move(root, root.replace(TEMP, zip_name))
         root = root.replace(TEMP, zip_name)
 
     # check if song already exists
-    dest = os.path.join(SONGS, root.split('/')[-1])
+    dest = os.path.join(SONGS, os.path.basename(root))
     if os.path.exists(dest):
         # TODO: output a diff of simfile metadata
         sm_new = simfile.opendir(root, strict=False)[0]

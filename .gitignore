@@ -162,3 +162,4 @@ cython_debug/
 # add-song test locations
 songs/
 .temp/
+.dls/
