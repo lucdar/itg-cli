@@ -1,7 +1,9 @@
 import os
 import shutil
 import simfile
+from simfile.types import Simfile
 from .utils.download_file import download_file
+from .utils.get_charts import getChartsAsInts
 
 TEMP = '.temp/'
 SONGS = 'songs/singles'
@@ -16,8 +18,7 @@ def printSimfileData(sm: simfile.types.Simfile, label: str):
     print(f"### {label} ###")
     print("  Title: " + sm.title,
           " Artist: " + sm.artist,
-          " Credit: " + sm.credit,
-          " Meters: " + str(list(map((lambda c: c.meter), sm.charts))),
+          " Meters: " + str(getChartsAsInts(sm)),
           sep='\n')
     print()
 
@@ -67,13 +68,38 @@ def add_song(args):
         cleanup()
         exit(1)
     if len(valid_dirs) > 1:
-        # TODO: ask user which simfile(s) to add if multiple are found.
-        print('Multiple valid simfiles found.',
-              'Please only include one simfile in the zip file.')
-        cleanup()
-        raise NotImplementedError
+        print('Multiple valid simfiles found:')
+        found_simfiles: list[Simfile] = []
+        found_simfile_paths: list[str] = []
+        for dir in valid_dirs:
+            try:
+                found_simfiles.append(simfile.opendir(dir, strict=False)[0])
+                found_simfile_paths.append(dir)
+            except Exception as e:
+                print(f'Error reading simfile in {dir}: {e}')
+                continue
+        total = len(found_simfiles)
+        for i, sm in enumerate(found_simfiles):
+            # format chart list output
+            charts = getChartsAsInts(sm)
+            indent = len(str(total)) - len(str(i+1))
+            chartIndent = len(str(total)) + 3
+            print(' '*indent + f'[{i+1}] {sm.title} - {sm.artist}',
+                  ' '*chartIndent + f'└Charts: {charts}',
+                  sep='\n')
 
-    root = valid_dirs[0]
+        while True:
+            print(f'Please choose a simfile to add [1-{total}]: ', end='')
+            choice = input()
+            if choice.isdigit() and int(choice) < total+1 and int(choice) > 0:
+                # print(valid_dirs)
+                print(f'Chosen dir: {valid_dirs[int(choice) - 1]}')
+                root = found_simfile_paths[int(choice) - 1]
+                break
+            else:
+                print('Invalid choice. Please choose again.')
+    else:
+        root = valid_dirs[0]
 
     # rename folder to zip name if no containing folder
     if root == TEMP:

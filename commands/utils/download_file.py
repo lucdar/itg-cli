@@ -26,15 +26,19 @@ def download_file(url):
     #     m = Mega()
     #     return m.download_url(url, DLS)
     if 'drive.google.com' in url:
-        filename = gdown.download(url, quiet=False)
+        filename = gdown.download(url, quiet=False, fuzzy=True)
         loc = os.path.join(os.getcwd(), filename)
         dest = os.path.join(DLS, filename)
-        if prompt_overwrite(dest):
-            os.remove(dest)
-            shutil.move(loc, dest)
+        # if file exists already prompt user to overwrite
+        if os.path.exists(dest):
+            if prompt_overwrite(dest):
+                os.remove(dest)
+                shutil.move(loc, dest)
+            else:
+                os.remove(loc)
         else:
-            os.remove(loc)
-        return os.path.join(DLS, filename)
+            shutil.move(loc, dest)
+        return dest
     else:  # try using requests
         r = requests.get(url, allow_redirects=True)
         if r.status_code != 200:
@@ -71,14 +75,13 @@ def prompt_overwrite(dest):
     Prompts the user to overwrite a file if it already exists.
     Returns True if the file should be overwritten, False if the old file should be used instead.
     """
-    if os.path.exists(dest) is True:
-        print('File with the same name already exists.')
-        print('Use (E)xisting file or (O)verwrite?')
-        while True:
-            res = input()
-            if res.lower() == 'e':
-                return False
-            elif res.lower() == 'o':
-                return True
-            else:
-                print('Invalid input. Please enter E or O.')
+    print('File with the same name already exists.')
+    print('Use (E)xisting file or (O)verwrite?')
+    while True:
+        res = input()
+        if res.lower() == 'e':
+            return False
+        elif res.lower() == 'o':
+            return True
+        else:
+            print('Invalid input. Please enter E or O.')
