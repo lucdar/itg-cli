@@ -1,4 +1,3 @@
-import simfile
 from simfile.types import Simfile, Chart
 
 

@@ -38,7 +38,6 @@ def main():
             ...
         case 'ping':
             print('pong')
-            exit(0)
         case 'restart':
             ...
         case 'status':
