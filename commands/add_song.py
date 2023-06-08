@@ -14,7 +14,7 @@ def cleanup():  # Remove the temp directory if it exists
         shutil.rmtree(TEMP)
 
 
-def printSimfileData(sm: simfile.types.Simfile, label: str):
+def printSimfileData(sm: Simfile, label: str):
     print(f"### {label} ###")
     print("  Title: " + sm.title,
           " Artist: " + sm.artist,
@@ -30,17 +30,15 @@ def add_song(args):
     # download file if URL
     if args.path.startswith('http'):
         path = download_file(args.path)
-        print("path from download:", path)
+        print("path to download:", path)
     else:
         path = args.path
 
     # validate path
     if path is None:
-        print('no path supplied')
-        exit(1)
+        raise Exception('No path supplied')
     elif os.path.exists(path) is False:
-        print('invalid path or URL:', path)
-        exit(1)
+        raise Exception('Invalid path:', path)
     elif os.path.isdir(path):  # copy song if directory
         shutil.copytree(path, TEMP)
     else:
@@ -49,10 +47,11 @@ def add_song(args):
         try:
             shutil.unpack_archive(path, TEMP)
         except:
-            print('Error extracting archive')
-            exit(1)
+            cleanup()
+            raise Exception('Error extracting archive')
 
     # dectect valid simfile directory
+    print('Searching for valid simfiles...')
     valid_dirs = []
     for root, _, files in os.walk(TEMP):
         if "__MACOSX" in root:  # ignore macosx folders
@@ -64,9 +63,8 @@ def add_song(args):
                 valid_dirs.append(root)
                 break
     if len(valid_dirs) == 0:
-        print('no valid simfile found')
         cleanup()
-        exit(1)
+        raise Exception('No valid simfiles found')
     if len(valid_dirs) > 1:
         print('Multiple valid simfiles found:')
         found_simfiles: list[Simfile] = []
@@ -84,8 +82,8 @@ def add_song(args):
             charts = getChartsAsInts(sm)
             indent = len(str(total)) - len(str(i+1))
             chartIndent = len(str(total)) + 3
-            print(' '*indent + f'[{i+1}] {sm.title} - {sm.artist}',
-                  ' '*chartIndent + f'└Charts: {charts}',
+            print(' ' * indent + f'[{i+1}] {sm.title} - {sm.artist}',
+                  ' ' * chartIndent + f'└Charts: {charts}',
                   sep='\n')
 
         while True:
@@ -101,9 +99,12 @@ def add_song(args):
     else:
         root = valid_dirs[0]
 
+    print('Song found at', root)
+    print('Moving song to singles folder...')
+
     # rename folder to zip name if no containing folder
     if root == TEMP:
-        # TODO: Test if OS agnostic
+        # TODO: Test if this works
         zip_name = os.path.basename(path).replace('.zip', '')
         shutil.move(root, root.replace(TEMP, zip_name))
         root = root.replace(TEMP, zip_name)
@@ -134,7 +135,6 @@ def add_song(args):
 
     # Move the song to the singles folder
     shutil.move(root, dest)
-    sm: simfile.types.Simfile = simfile.opendir(dest, strict=False)[0]
+    sm: Simfile = simfile.opendir(dest, strict=False)[0]
     printSimfileData(sm, "Song added successfully")
     cleanup()
-    exit(0)
