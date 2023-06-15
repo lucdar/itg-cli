@@ -65,6 +65,7 @@ def download_file(url):
                     progress = int(downloaded_size / total_size * 100)
                     print(f'\rDownloading {filename}: {progress}%', end='')
             print()
+            return os.path.join(DLS, filename)
         else:
             print('Invalid Content-Type:', r.headers['Content-Type'])
             exit(1)
