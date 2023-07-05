@@ -73,10 +73,10 @@ def download_file(url):
 
 def prompt_overwrite(dest):
     """ 
-    Prompts the user to overwrite a file if it already exists.
+    Prompts the user to overwrite a file if one exists with the same name.
     Returns True if the file should be overwritten, False if the old file should be used instead.
     """
-    print('File with the same name already exists.')
+    print('Prompt: Overwrite cached download file?')
     print('Use (E)xisting file or (O)verwrite?')
     while True:
         res = input()
