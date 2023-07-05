@@ -24,6 +24,6 @@ def getChartsAsStrings(sm: Simfile, difficulty_labels: bool = False):
     """
     charts = sm.charts
     if difficulty_labels:
-        return list(map((lambda c: c.difficulty + c.meter)), charts)
+        return list(map((lambda c: f'{c.difficulty} {c.meter}'), charts))
     else:
         return list(map((lambda c: c.difficulty), charts))
