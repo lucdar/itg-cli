@@ -102,7 +102,7 @@ def add_song(args):
                 print(f'Error reading simfile in {dir}: {e}')
                 continue
         printSimfileChoices(found_simfiles)
-
+        total = len(found_simfiles)
         while True:
             print(f'Please choose a simfile to add [1-{total}]: ', end='')
             choice = input()
