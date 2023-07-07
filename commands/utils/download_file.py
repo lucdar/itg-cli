@@ -77,7 +77,7 @@ def prompt_overwrite(dest):
     Returns True if the file should be overwritten, False if the old file should be used instead.
     """
     print('Prompt: Overwrite cached download file?')
-    print('Use (E)xisting file or (O)verwrite?')
+    print('Use [E]xisting file or [O]verwrite?')
     while True:
         res = input()
         if res.lower() == 'e':

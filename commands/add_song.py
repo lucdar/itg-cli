@@ -1,12 +1,13 @@
+import json
 import os
 import shutil
 import simfile
 from simfile.types import Simfile
 from .utils.download_file import download_file
-from .utils.get_charts import getChartsAsInts
+from .utils.get_charts import getChartsAsStrings
 
 TEMP = '.temp/'
-SONGS = 'songs/singles'
+SINGLES = 'songs/singles'
 
 
 def cleanup():  # Remove the temp directory if it exists
@@ -14,13 +15,37 @@ def cleanup():  # Remove the temp directory if it exists
         shutil.rmtree(TEMP)
 
 
-def printSimfileData(sm: Simfile, label: str):
-    print(f"### {label} ###")
-    print("  Title: " + sm.title,
+def printSimfileData(sm: Simfile, label: str = 'data'):
+    print(f"### {label} ###",
+          "  Title: " + sm.title,
           " Artist: " + sm.artist,
-          " Meters: " + str(getChartsAsInts(sm)),
-          sep='\n')
-    print()
+          " Meters: " + str(getChartsAsStrings(sm)),
+          sep='\n', end='\n\n')
+
+
+def printSimfileChoices(simfiles: list[Simfile], jsonOutput=False) -> None:
+    total = len(simfiles)
+    if jsonOutput:
+        simfileDict = []
+        for i, sm in enumerate(simfiles):
+            simfile = {
+                "index": i+1,
+                "title": sm.title,
+                "artist": sm.artist,
+                "charts": getChartsAsStrings(sm, difficulty_labels=True)
+            }
+            simfileDict.append(simfile)
+        print(json.dumps(simfileDict, indent=4))
+    else:
+        for i, sm in enumerate(simfiles):
+            # format chart list output
+            charts = getChartsAsStrings(sm, difficulty_labels=True)
+            charts = str(charts).replace("'", "")
+            indent = len(str(total)) - len(str(i+1))
+            chartIndent = len(str(total)) + 3
+            print(' ' * indent + f'[{i+1}] {sm.title} - {sm.artist}',
+                  ' ' * chartIndent + f'{charts}',
+                  sep='\n')
 
 
 def add_song(args):
@@ -30,7 +55,7 @@ def add_song(args):
     # download file if URL
     if args.path.startswith('http'):
         path = download_file(args.path)
-        print("path to download:", path)
+        # print("path to download:", path)
     else:
         path = args.path
 
@@ -76,15 +101,7 @@ def add_song(args):
             except Exception as e:
                 print(f'Error reading simfile in {dir}: {e}')
                 continue
-        total = len(found_simfiles)
-        for i, sm in enumerate(found_simfiles):
-            # format chart list output
-            charts = getChartsAsInts(sm)
-            indent = len(str(total)) - len(str(i+1))
-            chartIndent = len(str(total)) + 3
-            print(' ' * indent + f'[{i+1}] {sm.title} - {sm.artist}',
-                  ' ' * chartIndent + f'└Charts: {charts}',
-                  sep='\n')
+        printSimfileChoices(found_simfiles)
 
         while True:
             print(f'Please choose a simfile to add [1-{total}]: ', end='')
@@ -110,7 +127,7 @@ def add_song(args):
         root = root.replace(TEMP, zip_name)
 
     # check if song already exists
-    dest = os.path.join(SONGS, os.path.basename(root))
+    dest = os.path.join(SINGLES, os.path.basename(root))
     if os.path.exists(dest):
         # TODO: output a diff of simfile metadata
         sm_new = simfile.opendir(root, strict=False)[0]
@@ -119,14 +136,15 @@ def add_song(args):
         printSimfileData(sm_new, "New Simfile")
         printSimfileData(sm_old, "Old Simfile")
         while True:
-            print('Do you want to keep or overwrite the old simfile?')
-            print('  [K]eep or [O]verwrite: ', end='')
-            choice = input().upper()
-            if choice == 'K':
+            print('Prompt: A folder with the same name already exists.')
+            print(
+                'Do you want to keep the [E]xisting simfile, or [O]verwrite? ', end='')
+            choice = input().lower()
+            if choice == 'e':
                 print('Keeping old simfile. Exiting.\n')
                 cleanup()
                 exit(0)
-            if choice == 'O':
+            if choice == 'o':
                 print('Overwriting old simfile.\n')
                 shutil.rmtree(dest)
                 break
