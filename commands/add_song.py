@@ -91,7 +91,7 @@ def add_song(args):
         cleanup()
         raise Exception('No valid simfiles found')
     if len(valid_dirs) > 1:
-        print('Multiple valid simfiles found:')
+        print('Prompt: Multiple valid simfiles found:')
         found_simfiles: list[Simfile] = []
         found_simfile_paths: list[str] = []
         for dir in valid_dirs:
