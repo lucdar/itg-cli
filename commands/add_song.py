@@ -4,26 +4,19 @@ import shutil
 import simfile
 from simfile.types import Simfile
 from .utils.download_file import download_file
-from .utils.get_charts import getChartsAsStrings
-
-TEMP = '.temp/'
-SINGLES = 'songs/singles'
+from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_as_strings
+from ..constants import TEMP, SINGLES
 
 
-def cleanup():  # Remove the temp directory if it exists
-    if os.path.exists(TEMP):
-        shutil.rmtree(TEMP)
-
-
-def printSimfileData(sm: Simfile, label: str = 'data'):
+def print_simfile_data(sm: Simfile, label: str = 'data'):
     print(f"### {label} ###",
           "  Title: " + sm.title,
           " Artist: " + sm.artist,
-          " Meters: " + str(getChartsAsStrings(sm)),
+          " Meters: " + str(get_charts_as_strings(sm)),
           sep='\n', end='\n\n')
 
 
-def printSimfileChoices(simfiles: list[Simfile], jsonOutput=False) -> None:
+def print_simfile_choices(simfiles: list[Simfile], jsonOutput=False) -> None:
     total = len(simfiles)
     if jsonOutput:
         simfileDict = []
@@ -32,14 +25,14 @@ def printSimfileChoices(simfiles: list[Simfile], jsonOutput=False) -> None:
                 "index": i+1,
                 "title": sm.title,
                 "artist": sm.artist,
-                "charts": getChartsAsStrings(sm, difficulty_labels=True)
+                "charts": get_charts_as_strings(sm, difficulty_labels=True)
             }
             simfileDict.append(simfile)
         print(json.dumps(simfileDict, indent=4))
     else:
         for i, sm in enumerate(simfiles):
             # format chart list output
-            charts = getChartsAsStrings(sm, difficulty_labels=True)
+            charts = get_charts_as_strings(sm, difficulty_labels=True)
             charts = str(charts).replace("'", "")
             indent = len(str(total)) - len(str(i+1))
             chartIndent = len(str(total)) + 3
@@ -48,9 +41,11 @@ def printSimfileChoices(simfiles: list[Simfile], jsonOutput=False) -> None:
                   sep='\n')
 
 
+# TODO: make temp unique on each instance to allow for parallel execution
+
 def add_song(args):
     # clear temp directory if not empty
-    cleanup()
+    cleanup(TEMP)
 
     # download file if URL
     if args.path.startswith('http'):
@@ -70,27 +65,20 @@ def add_song(args):
         # Attempt to extract archive
         os.mkdir(TEMP)
         try:
-            shutil.unpack_archive(path, TEMP)
+            extract_archive(path, TEMP)
         except:
-            cleanup()
+            cleanup(TEMP)
             raise Exception('Error extracting archive')
 
-    # dectect valid simfile directory
+    # identify simfile
     print('Searching for valid simfiles...')
-    valid_dirs = []
-    for root, _, files in os.walk(TEMP):
-        if "__MACOSX" in root:  # ignore macosx folders
-            continue
-        for file in files:
-            if file.startswith('.'):  # ignore hidden files
-                continue
-            if file.endswith('.sm') or file.endswith('.ssc'):
-                valid_dirs.append(root)
-                break
+    valid_dirs = find_simfile_dirs(TEMP)
     if len(valid_dirs) == 0:
-        cleanup()
+        cleanup(TEMP)
         raise Exception('No valid simfiles found')
-    if len(valid_dirs) > 1:
+    if len(valid_dirs) == 1:
+        root = valid_dirs[0]
+    else:
         print('Prompt: Multiple valid simfiles found:')
         found_simfiles: list[Simfile] = []
         found_simfile_paths: list[str] = []
@@ -101,7 +89,7 @@ def add_song(args):
             except Exception as e:
                 print(f'Error reading simfile in {dir}: {e}')
                 continue
-        printSimfileChoices(found_simfiles)
+        print_simfile_choices(found_simfiles)
         total = len(found_simfiles)
         while True:
             print(f'Please choose a simfile to add [1-{total}]: ', end='')
@@ -113,28 +101,28 @@ def add_song(args):
                 break
             else:
                 print('Invalid choice. Please choose again.')
-    else:
-        root = valid_dirs[0]
 
     print('Song found at', root)
     print('Moving song to singles folder...')
 
     # rename folder to zip name if no containing folder
     if root == TEMP:
-        # TODO: Test if this works
+        # TODO: Test if this works. Is importing from archive the only way this can happen?
+        # What about other archive formats? (rar, 7z, etc.)
+        # TODO: Consider using sm file name instead? Or sm.title?
         zip_name = os.path.basename(path).replace('.zip', '')
         shutil.move(root, root.replace(TEMP, zip_name))
         root = root.replace(TEMP, zip_name)
 
-    # check if song already exists
+    # check if song folder already exists in singles folder
     dest = os.path.join(SINGLES, os.path.basename(root))
     if os.path.exists(dest):
         # TODO: output a diff of simfile metadata
         sm_new = simfile.opendir(root, strict=False)[0]
         sm_old = simfile.opendir(dest, strict=False)[0]
         print('Simfile dectected at destination.')
-        printSimfileData(sm_new, "New Simfile")
-        printSimfileData(sm_old, "Old Simfile")
+        print_simfile_data(sm_new, "New Simfile")
+        print_simfile_data(sm_old, "Old Simfile")
         while True:
             print('Prompt: A folder with the same name already exists.')
             print(
@@ -142,7 +130,7 @@ def add_song(args):
             choice = input().lower()
             if choice == 'e':
                 print('Keeping old simfile. Exiting.\n')
-                cleanup()
+                cleanup(TEMP)
                 exit(0)
             if choice == 'o':
                 print('Overwriting old simfile.\n')
@@ -154,5 +142,5 @@ def add_song(args):
     # Move the song to the singles folder
     shutil.move(root, dest)
     sm: Simfile = simfile.opendir(dest, strict=False)[0]
-    printSimfileData(sm, "Song added successfully")
-    cleanup()
+    print_simfile_data(sm, "Song added successfully")
+    cleanup(TEMP)
