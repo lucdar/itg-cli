@@ -5,7 +5,7 @@ import simfile
 from simfile.types import Simfile
 from .utils.download_file import download_file
 from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_as_strings
-from .utils.constants import TEMP, SINGLES
+from .utils.constants import TEMP_ROOT, SINGLES
 
 
 def print_simfile_data(sm: Simfile, label: str = 'data'):
@@ -41,9 +41,10 @@ def print_simfile_choices(simfiles: list[Simfile], jsonOutput=False) -> None:
                   sep='\n')
 
 
-# TODO: make temp unique on each instance to allow for parallel execution
-
 def add_song(args):
+    # create random temp subdirectory directory name
+    TEMP = os.path.join(TEMP_ROOT, os.urandom(8).hex())
+
     # clear temp directory if not empty
     cleanup(TEMP)
 
