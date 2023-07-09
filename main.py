@@ -1,5 +1,8 @@
 import argparse
+import os
 from commands.add_song import add_song
+from commands.add_pack import add_pack
+from commands.utils.constants import TEMP_ROOT
 
 
 def main():
@@ -28,10 +31,14 @@ def main():
 
     args = parser.parse_args()
 
+    # create temp folder if it doesn't exist
+    if not os.path.exists(TEMP_ROOT):
+        os.mkdir(TEMP_ROOT)
+
     # run command based on supplied arguments
     match args.command:
         case 'add-pack':
-            ...
+            add_pack(args)
         case 'add-song':
             add_song(args)
         case 'config':
