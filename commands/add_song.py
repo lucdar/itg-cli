@@ -4,7 +4,7 @@ import shutil
 import simfile
 from simfile.types import Simfile
 from .utils.download_file import download_file
-from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_as_strings
+from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_string
 from .utils.constants import TEMP_ROOT, SINGLES
 
 
@@ -12,7 +12,7 @@ def print_simfile_data(sm: Simfile, label: str = 'data'):
     print(f"### {label} ###",
           "  Title: " + sm.title,
           " Artist: " + sm.artist,
-          " Meters: " + str(get_charts_as_strings(sm)),
+          " Meters: " + str(get_charts_string(sm)).replace("'", ""),
           sep='\n', end='\n\n')
 
 
@@ -25,14 +25,14 @@ def print_simfile_choices(simfiles: list[Simfile], jsonOutput=False) -> None:
                 "index": i+1,
                 "title": sm.title,
                 "artist": sm.artist,
-                "charts": get_charts_as_strings(sm, difficulty_labels=True)
+                "charts": get_charts_string(sm, difficulty_labels=True)
             }
             simfileDict.append(simfile)
         print(json.dumps(simfileDict, indent=4))
     else:
         for i, sm in enumerate(simfiles):
             # format chart list output
-            charts = get_charts_as_strings(sm, difficulty_labels=True)
+            charts = get_charts_string(sm, difficulty_labels=True)
             charts = str(charts).replace("'", "")
             indent = len(str(total)) - len(str(i+1))
             chartIndent = len(str(total)) + 3
@@ -73,22 +73,22 @@ def add_song(args):
 
     # identify simfile
     print('Searching for valid simfiles...')
-    valid_dirs = find_simfile_dirs(TEMP)
-    if len(valid_dirs) == 0:
+    sm_dirs = find_simfile_dirs(TEMP)
+    if len(sm_dirs) == 0:
         cleanup(TEMP)
         raise Exception('No valid simfiles found')
-    if len(valid_dirs) == 1:
-        root = valid_dirs[0]
+    elif len(sm_dirs) == 1:
+        root = sm_dirs[0]
     else:
         print('Prompt: Multiple valid simfiles found:')
         found_simfiles: list[Simfile] = []
         found_simfile_paths: list[str] = []
-        for dir in valid_dirs:
+        for sm_dir in sm_dirs:
             try:
-                found_simfiles.append(simfile.opendir(dir, strict=False)[0])
-                found_simfile_paths.append(dir)
+                found_simfiles.append(simfile.opendir(sm_dir, strict=False)[0])
+                found_simfile_paths.append(sm_dir)
             except Exception as e:
-                print(f'Error reading simfile in {dir}: {e}')
+                print(f'Error reading simfile in {sm_dir}: {e}')
                 continue
         print_simfile_choices(found_simfiles)
         total = len(found_simfiles)
@@ -96,8 +96,8 @@ def add_song(args):
             print(f'Please choose a simfile to add [1-{total}]: ', end='')
             choice = input()
             if choice.isdigit() and int(choice) < total+1 and int(choice) > 0:
-                # print(valid_dirs)
-                print(f'Chosen dir: {valid_dirs[int(choice) - 1]}')
+                # print(sm_dirs)
+                print(f'Chosen dir: {sm_dirs[int(choice) - 1]}')
                 root = found_simfile_paths[int(choice) - 1]
                 break
             else:
@@ -133,7 +133,7 @@ def add_song(args):
                 print('Keeping old simfile. Exiting.\n')
                 cleanup(TEMP)
                 exit(0)
-            if choice == 'o':
+            elif choice == 'o':
                 print('Overwriting old simfile.\n')
                 shutil.rmtree(dest)
                 break
