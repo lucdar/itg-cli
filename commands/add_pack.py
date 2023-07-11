@@ -61,6 +61,7 @@ def add_pack(args):
             pack_dirs_count[candidate] = pack_dirs.count(candidate)
         print(pack_dirs_count)
         # TODO: prompt user to choose a pack directory
+        cleanup(TEMP)
         raise NotImplementedError('Multiple valid pack directories found')
 
     pack = SimfilePack(pack_dirs[0])
@@ -121,15 +122,18 @@ def add_pack(args):
             print('Prompt: Do you want to add these courses? [Y/n] ', end='')
             choice = input().lower()
             if choice == 'y':
-                # merge Courses folder with COURSES directory
-                courses_dir = crs_dirs[0].split('Courses')[0] + 'Courses'
-                for file in os.listdir(courses_dir):
-                    # (overwrite existing files)
-                    dest = os.path.join(COURSES, file)
-                    if os.path.exists(dest):
-                        os.remove(dest)
-                    # move file
-                    shutil.move(os.path.join(courses_dir, file), COURSES)
+                # copy all files in directories with .crs files to courses subfolder
+                courses_subfolder = os.path.join(COURSES, pack.name)
+                if os.path.exists(courses_subfolder):
+                    shutil.rmtree(courses_subfolder)
+                os.mkdir(courses_subfolder)
+                courses_dirs = [os.path.dirname(crs) for crs in crs_dirs]
+                courses_dirs_set = set(courses_dirs)
+                for courses_dir in courses_dirs_set:
+                    for file in os.listdir(courses_dir):
+                        file_dir = os.path.join(courses_dir, file)
+                        if os.path.isfile(file_dir):
+                            shutil.copy(file_dir, courses_subfolder)
                 break
             elif choice == 'n':
                 break
