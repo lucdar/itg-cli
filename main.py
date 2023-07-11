@@ -15,9 +15,8 @@ def main():
                      [('path', 'path or url to song')]),
         'config': ('Set the current profile',
                    [('profile', 'profile to use')]),
-        'ping': ('Ping the server', []),
+        'ping': ('Responds with pong :3', []),
         'restart': ('(Re)start the game', []),
-        'status': ('Get the current status of the game', []),
         'songlist': ('Update the current songlist', []),
         'stop': ('Stop the game', [])
     }
@@ -48,8 +47,6 @@ def main():
         case 'ping':
             print('pong')
         case 'restart':
-            ...
-        case 'status':
             ...
         case 'songlist':
             ...
