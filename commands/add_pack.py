@@ -111,6 +111,7 @@ def add_pack(args):
 
     # look for a Courses folder containing files with .crs extension
     print('Searching for courses...', end='')
+    added_courses = False
     crs_dirs: list[str] = []
     for root, _, files in os.walk(TEMP):
         for file in files:
@@ -136,6 +137,7 @@ def add_pack(args):
                         file_dir = os.path.join(courses_dir, file)
                         if os.path.isfile(file_dir):
                             shutil.copy(file_dir, courses_subfolder)
+                added_courses = True
                 break
             elif choice == 'n':
                 break
@@ -146,4 +148,6 @@ def add_pack(args):
 
     # move pack to packs directory
     shutil.move(pack.pack_dir, os.path.join(PACKS, pack.name))
+    print(
+        f"Added pack {'and courses' if added_courses else ''} successfully!")
     cleanup(TEMP)
