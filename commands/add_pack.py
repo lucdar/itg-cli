@@ -6,7 +6,7 @@ from simfile.types import Simfile
 from simfile.dir import SimfilePack
 from .utils.download_file import download_file
 from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_string
-from .utils.constants import TEMP_ROOT, PACKS
+from .utils.constants import TEMP_ROOT, PACKS, COURSES
 
 
 def add_pack(args):
@@ -105,6 +105,35 @@ def add_pack(args):
                 return
             else:
                 print('Invalid choice')
+
+    # detect files with .crs extension and add them to the courses directory
+    print('Searching for courses...', end='')
+    crs_dirs = []
+    for root, _, files in os.walk(TEMP):
+        for file in files:
+            if file.endswith('.crs'):
+                crs_dirs.append(os.path.join(root, file))
+    if len(crs_dirs) > 0:
+        print(f"\rFound {len(crs_dirs)} courses:")
+        for crs in crs_dirs:
+            print(f"  {os.path.basename(crs)}")
+        while True:
+            print('Prompt: Do you want to add these courses? [Y/n] ', end='')
+            choice = input().lower()
+            if choice == 'y':
+                pack_courses_dir = os.path.join(COURSES, pack.name)
+                if os.path.exists(pack_courses_dir):
+                    shutil.rmtree(pack_courses_dir)
+                os.mkdir(pack_courses_dir)
+                for crs in crs_dirs:
+                    shutil.move(crs, pack_courses_dir)
+                break
+            elif choice == 'n':
+                break
+            else:
+                print('Invalid choice')
+    else:
+        print('\rNo courses found.')
 
     # move pack to packs directory
     shutil.move(pack.pack_dir, os.path.join(PACKS, pack.name))

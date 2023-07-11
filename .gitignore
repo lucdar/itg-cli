@@ -161,5 +161,6 @@ cython_debug/
 
 # add-song test locations
 songs/
+courses/
 .temp/
 .dls/
