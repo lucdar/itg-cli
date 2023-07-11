@@ -68,6 +68,7 @@ def add_pack(args):
     songs = list(pack.simfiles())
 
     # print pack metadata
+    print("Pack metadata:")
     print(f"{pack.name} contains {len(songs)} songs:")
     for song in songs:
         print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
@@ -89,13 +90,14 @@ def add_pack(args):
         existing_songs = list(existing_pack.simfiles())
         difference = len(songs) - len(existing_songs)
         if difference == 0:
-            print('Pack already exists (with the same number of songs).')
+            print('Prompt: Pack already exists (with the same number of songs).')
         elif difference > 0:
-            print(f"Pack already exists with {difference} fewer songs.")
+            print(
+                f"Prompt: Pack already exists with {difference} fewer songs.")
         else:  # difference < 0
-            print(f"Pack already exists with {abs(difference)} more songs.")
+            print(
+                f"Prompt: Pack already exists with {abs(difference)} more songs.")
         while True:
-            print('Prompt: Pack already exists.')
             print('[O]verwrite or keep [E]xisting pack? ', end='')
             choice = input().lower()
             if choice == 'o':
