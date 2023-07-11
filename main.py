@@ -2,7 +2,7 @@ import argparse
 import os
 from commands.add_song import add_song
 from commands.add_pack import add_pack
-from commands.utils.constants import TEMP_ROOT
+from commands.utils.constants import TEMP_ROOT, COURSES
 
 
 def main():
@@ -34,6 +34,8 @@ def main():
     # create temp folder if it doesn't exist
     if not os.path.exists(TEMP_ROOT):
         os.mkdir(TEMP_ROOT)
+    if not os.path.exists(COURSES):
+        os.mkdir(COURSES)
 
     # run command based on supplied arguments
     match args.command:

@@ -106,34 +106,37 @@ def add_pack(args):
             else:
                 print('Invalid choice')
 
-    # detect files with .crs extension and add them to the courses directory
+    # look for a Courses folder containing files with .crs extension
     print('Searching for courses...', end='')
-    crs_dirs = []
+    crs_dirs: list[str] = []
     for root, _, files in os.walk(TEMP):
         for file in files:
-            if file.endswith('.crs'):
+            if file.endswith('.crs') and 'Courses' in root:
                 crs_dirs.append(os.path.join(root, file))
     if len(crs_dirs) > 0:
-        print(f"\rFound {len(crs_dirs)} courses:")
+        print(f"\rFound {len(crs_dirs)} courses:".ljust(24, ' '))
         for crs in crs_dirs:
             print(f"  {os.path.basename(crs)}")
         while True:
             print('Prompt: Do you want to add these courses? [Y/n] ', end='')
             choice = input().lower()
             if choice == 'y':
-                pack_courses_dir = os.path.join(COURSES, pack.name)
-                if os.path.exists(pack_courses_dir):
-                    shutil.rmtree(pack_courses_dir)
-                os.mkdir(pack_courses_dir)
-                for crs in crs_dirs:
-                    shutil.move(crs, pack_courses_dir)
+                # merge Courses folder with COURSES directory
+                courses_dir = crs_dirs[0].split('Courses')[0] + 'Courses'
+                for file in os.listdir(courses_dir):
+                    # (overwrite existing files)
+                    dest = os.path.join(COURSES, file)
+                    if os.path.exists(dest):
+                        os.remove(dest)
+                    # move file
+                    shutil.move(os.path.join(courses_dir, file), COURSES)
                 break
             elif choice == 'n':
                 break
             else:
                 print('Invalid choice')
     else:
-        print('\rNo courses found.')
+        print('\rNo courses found.'.ljust(24, ' '))
 
     # move pack to packs directory
     shutil.move(pack.pack_dir, os.path.join(PACKS, pack.name))
