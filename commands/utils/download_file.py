@@ -4,6 +4,7 @@ import gdown
 import shutil
 import os
 import pyrfc6266
+import tqdm
 
 DLS = '.dls/'
 
@@ -11,7 +12,8 @@ DLS = '.dls/'
 def download_file(url):
     """
     Downloads a file from a URL to the DLS folder and returns a path to the downloaded file.
-    Processes Google drive links using gdown and attempts to download other files using requests
+    Processes Google drive links using gdown and attempts to download other files using requests.
+    Prints a progress bar to stderr.
     """
     # create DLS folder if it doesn't exist
     if os.path.exists(DLS) is False:
@@ -31,7 +33,7 @@ def download_file(url):
         dest = os.path.join(DLS, filename)
         # if file exists already prompt user to overwrite
         if os.path.exists(dest):
-            if prompt_overwrite(dest):
+            if prompt_overwrite():
                 os.remove(dest)
                 shutil.move(loc, dest)
             else:
@@ -54,24 +56,26 @@ def download_file(url):
             else:
                 filename = pyrfc6266.parse_filename(
                     r.headers['Content-Disposition'])
-            if prompt_overwrite(os.path.join(DLS, filename)) is False:
+            if os.path.exists(os.path.join(DLS, filename)) and prompt_overwrite() is False:
                 return os.path.join(DLS, filename)
             chunk_size = 128
-            total_size = int(r.headers.get('content-length', 0))
+            total_size = r.headers.get('content-length', None)
+            if total_size is not None:
+                total_size = int(total_size)
+            pbar = tqdm.tqdm(total=total_size, unit="B",
+                             unit_scale=True, desc=filename)
             with open(os.path.join(DLS, filename), 'wb') as file:
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     file.write(chunk)
-                    downloaded_size = file.tell()
-                    progress = int(downloaded_size / total_size * 100)
-                    print(f'\rDownloading {filename}: {progress}%', end='')
-            print()
+                    pbar.update(len(chunk))
+            pbar.close()
             return os.path.join(DLS, filename)
         else:
             print('Invalid Content-Type:', r.headers['Content-Type'])
             exit(1)
 
 
-def prompt_overwrite(dest):
+def prompt_overwrite():
     """ 
     Prompts the user to overwrite a file if one exists with the same name.
     Returns True if the file should be overwritten, False if the old file should be used instead.
