@@ -1,6 +1,5 @@
 import requests
 import gdown
-# from mega import Mega
 import shutil
 import os
 import pyrfc6266
@@ -23,10 +22,10 @@ def download_file(url):
         print('Invalid URL:', url)
         exit(1)
 
-    # Enumerate cases for different file hosts
     # if 'mega.nz' in url or 'mega.co.nz' in url:
-    #     m = Mega()
-    #     return m.download_url(url, DLS)
+    #     # Detect installation of megacmd
+    #     if shutil.which('megacmd') is None:
+    #         raise Exception('Error: megacmd not installed')
     if 'drive.google.com' in url:
         filename = gdown.download(url, quiet=False, fuzzy=True)
         loc = os.path.join(os.getcwd(), filename)
