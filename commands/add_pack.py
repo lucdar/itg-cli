@@ -1,8 +1,5 @@
-import json
 import os
 import shutil
-import simfile
-from simfile.types import Simfile
 from simfile.dir import SimfilePack
 from .utils.download_file import download_file
 from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_string
@@ -64,7 +61,13 @@ def add_pack(args):
         cleanup(TEMP)
         raise NotImplementedError('Multiple valid pack directories found')
 
-    pack = SimfilePack(pack_dirs[0])
+    try:
+        pack = SimfilePack(pack_dirs[0])
+    except Exception as e:
+        # if DuplicateSimfileError, then uhhh idk
+        if e.__class__.__name__ == 'DuplicateSimfileError':
+            raise NotImplementedError(
+                'A song with multiple .sm or .ssc files has been detected. This is not supported yet.')
     songs = list(pack.simfiles())
 
     # print pack metadata
@@ -126,6 +129,7 @@ def add_pack(args):
             choice = input().lower()
             if choice == 'y':
                 # copy all files in directories with .crs files to courses subfolder
+                # important to copy all files because banners are not .crs files
                 courses_subfolder = os.path.join(COURSES, pack.name)
                 if os.path.exists(courses_subfolder):
                     shutil.rmtree(courses_subfolder)
