@@ -1,21 +1,22 @@
 import yaml
 import os
 
+PROJ_ROOT = os.path.dirname(__file__)  # /itg-cli
 DEFAULT_VALUES = {
     'singles': '',
     'packs': '',
     'courses': '',
     'downloads': '',
-    'temp_root': os.path.join(os.path.dirname(__file__), '.temp/'),
+    'temp_root': os.path.join(PROJ_ROOT, '.temp/'),
 }
 
 
 def load_config():
     # detect config file
-    config_path = 'config.yaml'
-    if os.path.exists('config.yaml') is False:
-        config_path = 'config-template.yaml'
-        if os.path.exists('config-template.yaml') is False:
+    config_path = os.path.join(PROJ_ROOT, 'config.yaml')
+    if os.path.exists(config_path) is False:
+        config_path = os.path.join(PROJ_ROOT, 'config-template.yaml')
+        if os.path.exists(config_path) is False:
             raise Exception('No config file found')
 
     with open(config_path, 'r') as config_file:
@@ -24,7 +25,7 @@ def load_config():
     for key in DEFAULT_VALUES.keys():
         if key not in config.keys():
             config[key] = DEFAULT_VALUES[key]
-        if config.get(key) is '':
+        if config.get(key) == '':
             raise Exception(f'Invalid config: key "{key}" is empty or missing')
         if os.path.exists(config.get(key)) is False:
             if key == 'temp_root':
