@@ -4,19 +4,22 @@ import shutil
 import os
 import pyrfc6266
 import tqdm
+from config import config_data
 
-DLS = '.dls/'
+DOWNLOADS = config_data['downloads']
+TMP_ROOT = config_data['temp_root']
 
 
 def download_file(url):
     """
-    Downloads a file from a URL to the DLS folder and returns a path to the downloaded file.
+    Downloads a file from a URL to the downloads folder and returns a path to the downloaded file.
+    If the file already exists, prompts the user to overwrite it or use the existing file.
     Processes Google drive links using gdown and attempts to download other files using requests.
     Prints a progress bar to stderr.
     """
-    # create DLS folder if it doesn't exist
-    if os.path.exists(DLS) is False:
-        os.mkdir(DLS)
+    # create DOWNLOADS folder if it doesn't exist
+    if os.path.exists(DOWNLOADS) is False:
+        os.mkdir(DOWNLOADS)
 
     if url.startswith('http') is False:
         print('Invalid URL:', url)
@@ -27,9 +30,10 @@ def download_file(url):
     #     if shutil.which('megacmd') is None:
     #         raise Exception('Error: megacmd not installed')
     if 'drive.google.com' in url:
+        os.chdir(TMP_ROOT)  # change cwd to temp folder
         filename = gdown.download(url, quiet=False, fuzzy=True)
         loc = os.path.join(os.getcwd(), filename)
-        dest = os.path.join(DLS, filename)
+        dest = os.path.join(DOWNLOADS, filename)
         # if file exists already prompt user to overwrite
         if os.path.exists(dest):
             if prompt_overwrite():
@@ -53,22 +57,27 @@ def download_file(url):
             if 'Content-Disposition' not in r.headers.keys():
                 filename = os.path.basename(url) + '.zip'
             else:
+                # parse filename from Content-Disposition header
+                # Apparently this is nontrivial so the pyrfc6266 library is used
                 filename = pyrfc6266.parse_filename(
                     r.headers['Content-Disposition'])
-            if os.path.exists(os.path.join(DLS, filename)) and prompt_overwrite() is False:
-                return os.path.join(DLS, filename)
+            if os.path.exists(dest):
+                if prompt_overwrite() is False:
+                    return dest
+                else:
+                    os.path.remove(dest)
             chunk_size = 128
             total_size = r.headers.get('content-length', None)
             if total_size is not None:
                 total_size = int(total_size)
             pbar = tqdm.tqdm(total=total_size, unit="B",
                              unit_scale=True, desc=filename)
-            with open(os.path.join(DLS, filename), 'wb') as file:
+            with open(dest, 'wb') as file:
                 for chunk in r.iter_content(chunk_size=chunk_size):
                     file.write(chunk)
                     pbar.update(len(chunk))
             pbar.close()
-            return os.path.join(DLS, filename)
+            return dest
         else:
             print('Invalid Content-Type:', r.headers['Content-Type'])
             exit(1)

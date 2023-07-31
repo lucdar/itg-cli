@@ -2,7 +2,10 @@ import argparse
 import os
 from commands.add_song import add_song
 from commands.add_pack import add_pack
-from commands.utils.constants import TEMP_ROOT, COURSES
+from config import config_data
+
+COURSES = config_data['courses']
+TEMP_ROOT = config_data['temp_root']
 
 
 def main():

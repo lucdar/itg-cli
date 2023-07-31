@@ -3,7 +3,11 @@ import shutil
 from simfile.dir import SimfilePack
 from .utils.download_file import download_file
 from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_string
-from .utils.constants import TEMP_ROOT, PACKS, COURSES
+from config import config_data
+
+TEMP_ROOT = config_data['temp_root']
+PACKS = config_data['packs']
+COURSES = config_data['courses']
 
 
 def add_pack(args):

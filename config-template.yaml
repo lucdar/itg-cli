@@ -1,0 +1,21 @@
+# ITG CLI Configuration File
+# The absolute path to the folder you want to add packs to.
+# e.g. /home/user/.ITGMania/Songs
+packs: ''
+
+# The absolute path to the pack you want to add single songs to.
+# e.g. /home/user/.ITGMania/Songs/Singles
+singles: ''
+
+# The absolute path to the Stepmania courses folder.
+# e.g. /home/user/.ITGMania/Courses
+courses: ''
+
+# The absolute path to the folder to store and cache downloads.
+# e.g. /home/user/downloads
+downloads: ''
+
+# The absolute patht to the 'temp' folder to store temporary files.
+# Should be cleared on every run, but if the program exits ungracefully it may not be.
+# Not required, defaults to [itg-cli folder]/.temp
+# temp: ''

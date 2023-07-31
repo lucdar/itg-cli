@@ -1,3 +1,4 @@
 simfile==2.1.1
 gdown>=4.7.1
 pyrfc6266>=1.0.2
+pyyaml>=6.0
