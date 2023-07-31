@@ -61,11 +61,12 @@ def download_file(url):
                 # Apparently this is nontrivial so the pyrfc6266 library is used
                 filename = pyrfc6266.parse_filename(
                     r.headers['Content-Disposition'])
+            dest = os.path.join(DOWNLOADS, filename)
             if os.path.exists(dest):
                 if prompt_overwrite() is False:
                     return dest
                 else:
-                    os.path.remove(dest)
+                    os.remove(dest)
             chunk_size = 128
             total_size = r.headers.get('content-length', None)
             if total_size is not None:

@@ -5,7 +5,10 @@ import simfile
 from simfile.types import Simfile
 from .utils.download_file import download_file
 from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_string
-from .utils.constants import TEMP_ROOT, SINGLES
+from config import config_data
+
+TEMP_ROOT = config_data['temp_root']
+SINGLES = config_data['singles']
 
 
 def print_simfile_data(sm: Simfile, label: str = 'data'):

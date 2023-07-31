@@ -33,12 +33,6 @@ def main():
 
     args = parser.parse_args()
 
-    # create temp folder if it doesn't exist
-    if not os.path.exists(TEMP_ROOT):
-        os.mkdir(TEMP_ROOT)
-    if not os.path.exists(COURSES):
-        os.mkdir(COURSES)
-
     # run command based on supplied arguments
     match args.command:
         case 'add-pack':

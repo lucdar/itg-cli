@@ -27,8 +27,11 @@ def load_config():
         if config.get(key) is '':
             raise Exception(f'Invalid config: key "{key}" is empty or missing')
         if os.path.exists(config.get(key)) is False:
-            raise Exception(
-                f'Invalid config: path "{config.get(key)}" does not exist')
+            if key == 'temp_root':
+                os.makedirs(config.get(key))
+            else:
+                raise Exception(
+                    f'Invalid config: path "{config.get(key)}" does not exist')
     return config
 
 
