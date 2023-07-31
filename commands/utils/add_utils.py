@@ -1,6 +1,7 @@
 import os
 import shutil
 from simfile.types import Simfile, Chart
+from config import config_data
 
 
 def cleanup(path) -> None:
@@ -22,6 +23,8 @@ def find_simfile_dirs(path: str) -> list[str]:
         if "__MACOSX" in root:  # ignore macosx folders
             continue
         for file in files:
+            if file.startswith('._') and config_data['delete-macos-files'] == True:
+                os.remove(os.path.join(root, file))
             if file.startswith('.'):  # ignore hidden files
                 continue
             if file.endswith('.sm') or file.endswith('.ssc'):

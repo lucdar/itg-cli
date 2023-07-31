@@ -1,13 +1,16 @@
 import yaml
 import os
 
-PROJ_ROOT = os.path.dirname(__file__)  # /itg-cli
+PROJ_ROOT = os.path.dirname(__file__)  # path to .../itg-cli/
+
+# Default values for config if the corresponding keys aren't found in config.yaml
 DEFAULT_VALUES = {
     'singles': '',
     'packs': '',
     'courses': '',
     'downloads': '',
     'temp_root': os.path.join(PROJ_ROOT, '.temp/'),
+    'delete-macos-files': False,
 }
 
 
