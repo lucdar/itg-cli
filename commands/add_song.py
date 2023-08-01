@@ -4,7 +4,7 @@ import shutil
 import simfile
 from simfile.types import Simfile
 from .utils.download_file import download_file
-from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_string
+from .utils.add_utils import *
 from config import config_data
 
 TEMP_ROOT = config_data['temp_root']
@@ -109,6 +109,9 @@ def add_song(args):
     print('Song found at', root)
     print('Moving song to singles folder...')
 
+    if config_data['delete-macos-files']:  # delete macos files if enabled
+        delete_macos_files(root)
+
     # rename folder to zip name if no containing folder
     if root == TEMP:
         # TODO: Test if this works. Is importing from archive the only way this can happen?
@@ -122,6 +125,8 @@ def add_song(args):
     dest = os.path.join(SINGLES, os.path.basename(root))
     if os.path.exists(dest):
         # TODO: output a diff of simfile metadata
+        if config_data['delete-macos-files']:  # delete macos files if enabled
+            delete_macos_files(dest)
         sm_new = simfile.opendir(root, strict=False)[0]
         sm_old = simfile.opendir(dest, strict=False)[0]
         print('Simfile dectected at destination.')

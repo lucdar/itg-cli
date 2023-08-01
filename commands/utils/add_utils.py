@@ -18,19 +18,18 @@ def extract_archive(path: str, dest: str) -> None:
 
 def find_simfile_dirs(path: str) -> list[str]:
     """Returns a list of valid simfile directories in the supplied path"""
-    dirs = []
+    dirs = set()
     for root, _, files in os.walk(path):
         if "__MACOSX" in root:  # ignore macosx folders
             continue
         for file in files:
-            if file.startswith('._') and config_data['delete-macos-files'] == True:
-                os.remove(os.path.join(root, file))
             if file.startswith('.'):  # ignore hidden files
                 continue
             if file.endswith('.sm') or file.endswith('.ssc'):
-                dirs.append(root)
+                # File found in this directory, continue to next directory
+                dirs.add(root)
                 break
-    return dirs
+    return list(dirs)
 
 
 def print_simfile_data(sm: Simfile, label: str = 'data') -> None:
@@ -73,3 +72,11 @@ def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     else:
         def fn(c): return c.meter
     return str(list(map(fn, charts))).replace("'", "")
+
+
+def delete_macos_files(path: str) -> None:
+    """Deletes all `._` files in the supplied path"""
+    for root, _, files in os.walk(path):
+        for file in files:
+            if file.startswith('._'):
+                os.remove(os.path.join(root, file))

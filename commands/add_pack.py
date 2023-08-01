@@ -2,7 +2,7 @@ import os
 import shutil
 from simfile.dir import SimfilePack
 from .utils.download_file import download_file
-from .utils.add_utils import cleanup, extract_archive, find_simfile_dirs, get_charts_string
+from .utils.add_utils import *
 from config import config_data
 
 TEMP_ROOT = config_data['temp_root']
@@ -66,6 +66,8 @@ def add_pack(args):
         raise NotImplementedError('Multiple valid pack directories found')
 
     try:
+        if config_data['delete-macos-files']:  # delete macos files if enabled
+            delete_macos_files(pack_dirs[0])
         pack = SimfilePack(pack_dirs[0])
     except Exception as e:
         # if DuplicateSimfileError, then uhhh idk
@@ -93,6 +95,8 @@ def add_pack(args):
     # check if pack already exists
     dest = os.path.join(PACKS, pack.name)
     if os.path.exists(dest):
+        if config_data['delete-macos-files']:  # delete macos files if enabled
+            delete_macos_files(dest)
         existing_pack = SimfilePack(dest)
         existing_songs = list(existing_pack.simfiles())
         difference = len(songs) - len(existing_songs)
