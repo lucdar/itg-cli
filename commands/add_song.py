@@ -47,7 +47,8 @@ def print_simfile_choices(simfiles: list[Simfile], jsonOutput=False) -> None:
 
 def add_song(args):
     # create random temp subdirectory directory name
-    TEMP = os.path.join(TEMP_ROOT, os.urandom(8).hex())
+    TEMP_FOLDER = os.urandom(8).hex()
+    TEMP = os.path.join(TEMP_ROOT, TEMP_FOLDER)
 
     # clear temp directory if not empty
     cleanup(TEMP)
@@ -106,8 +107,15 @@ def add_song(args):
         # What about other archive formats? (rar, 7z, etc.)
         # TODO: Consider using sm file name instead? Or sm.title?
         zip_name = os.path.basename(path).replace('.zip', '')
-        shutil.move(root, root.replace(TEMP, zip_name))
-        root = root.replace(TEMP, zip_name)
+        if zip_name == '':
+            # use name of .ssc or .sm file if no zip_name
+            for file in os.listdir(root):
+                if file.endswith('.ssc') or file.endswith('.sm'):
+                    zip_name = file.replace('.ssc', '').replace('.sm', '')
+                    break
+        new_root = root.replace(TEMP_FOLDER, zip_name)
+        shutil.move(root, new_root)
+        root = new_root
 
     # check if song folder already exists in singles folder
     dest = os.path.join(SINGLES, os.path.basename(root))
