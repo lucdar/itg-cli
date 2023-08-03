@@ -13,6 +13,10 @@ singles: ''
 # e.g. /home/user/.ITGMania/Courses
 courses: ''
 
+# The absolute path to the Stepmania Cache folder.
+# e.g. /home/user/.ITGMania/Cache
+cache: ''
+
 # The absolute path to the folder to store and cache downloads.
 # e.g. /home/user/downloads
 downloads: ''

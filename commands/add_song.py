@@ -10,6 +10,7 @@ from config import config_data
 
 TEMP_ROOT = config_data['temp_root']
 SINGLES = config_data['singles']
+CACHE = config_data['cache']
 
 
 def print_simfile_data(sm: Simfile, label: str = 'data'):
@@ -140,6 +141,16 @@ def add_song(args):
             elif choice == 'o':
                 print('Overwriting old simfile.\n')
                 shutil.rmtree(dest)
+                # Also delete cache entry
+                if CACHE != '':
+                    singles_packname = os.path.basename(os.path.normpath(pack))
+                    song_folder_name = os.path.basename(root)
+                    for cache_entry in os.listdir(os.path.join(CACHE, 'Songs')):
+                        # Cache Files are named Songs_PackName_SongFolderName
+                        _, pack, song = cache_entry.split("_", maxsplit=2)
+                        if pack == singles_packname and song == song_folder_name:
+                            os.remove(os.path.join(
+                                CACHE, 'Songs', cache_entry))
                 break
             else:
                 print('Invalid choice. Please choose again.')

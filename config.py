@@ -8,6 +8,7 @@ DEFAULT_VALUES = {
     'singles': '',
     'packs': '',
     'courses': '',
+    'cache': '',
     'downloads': '',
     'temp_root': os.path.join(PROJ_ROOT, '.temp/'),
     'delete-macos-files': False,
