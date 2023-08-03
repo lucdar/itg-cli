@@ -24,20 +24,8 @@ def add_pack(args):
     else:
         path = args.path
 
-    # validate path
-    if path is None:
-        raise Exception('No path supplied')
-    elif os.path.exists(path) is False:
-        raise Exception('Invalid path:', path)
-    elif os.path.isdir(path):  # copy song if directory
-        shutil.copytree(path, TEMP)
-    else:  # extract archive to temp directory
-        os.mkdir(TEMP)
-        try:
-            extract_archive(path, TEMP)
-        except:
-            cleanup(TEMP)
-            raise Exception('Error extracting archive')
+    validate_path(path, TEMP)
+    move_to_temp(path, TEMP)
 
     # identify simfile paths
     sm_dirs = find_simfile_dirs(TEMP)

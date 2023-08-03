@@ -80,3 +80,27 @@ def delete_macos_files(path: str) -> None:
         for file in files:
             if file.startswith('._'):
                 os.remove(os.path.join(root, file))
+
+
+def validate_path(path: str, TEMP: str):
+    """Validates the supplied path."""
+    if path is None:
+        raise Exception('No path supplied')
+    elif os.path.exists(path) is False:
+        raise Exception('Invalid path:', path)
+
+
+def move_to_temp(path: str, TEMP: str):
+    """Moves the files supplied by path to the TEMP directory. Extracts archives if necessary."""
+    if os.path.isdir(path):  # copy song if directory
+        folder = os.path.basename(os.path.normpath(path))
+        dest = os.path.join(TEMP, folder)
+        shutil.copytree(path, dest)
+    else:
+        os.mkdir(TEMP)
+        # Attempt to extract archive
+        try:
+            extract_archive(path, TEMP)
+        except Exception as e:
+            cleanup(TEMP)
+            raise Exception('Error extracting archive: ', e)
