@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import sys
 import simfile
 from simfile.types import Simfile
 from .utils.download_file import download_file
@@ -137,6 +138,16 @@ def add_song(args):
 
     # Move the song to the singles folder
     shutil.move(root, dest)
-    sm: Simfile = simfile.opendir(dest, strict=False)[0]
+    try:
+        sm = simfile.opendir(dest)[0]
+    except Exception as e:
+        if e.__class__.__name__ == 'MSDParseError':
+            print(
+                "Warning: Simfile is malformed. Proceeding with unstrict parsing.",
+                file=sys.stderr
+            )
+            sm = simfile.opendir(dest, strict=False)[0]
+        else:
+            raise e
     print_simfile_data(sm, "Song added successfully")
     cleanup(TEMP)
