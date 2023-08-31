@@ -143,8 +143,9 @@ def add_song(args):
                 shutil.rmtree(dest)
                 # Also delete cache entry
                 if CACHE != '':
-                    singles_packname = os.path.basename(os.path.normpath(pack))
                     song_folder_name = os.path.basename(root)
+                    singles_packname = os.path.basename(
+                        os.path.normpath(config_data['singles']))
                     for cache_entry in os.listdir(os.path.join(CACHE, 'Songs')):
                         # Cache Files are named Songs_PackName_SongFolderName
                         _, pack, song = cache_entry.split("_", maxsplit=2)
