@@ -16,12 +16,7 @@ def main():
                      [('path', 'path or url to pack')]),
         'add-song': ('Add a song from a supplied zip file or link',
                      [('path', 'path or url to song')]),
-        'config': ('Set the current profile',
-                   [('profile', 'profile to use')]),
         'ping': ('Responds with pong :3', []),
-        'restart': ('(Re)start the game', []),
-        'songlist': ('Update the current songlist', []),
-        'stop': ('Stop the game', [])
     }
 
     parser = argparse.ArgumentParser(description='ITG CLI')
@@ -39,16 +34,8 @@ def main():
             add_pack(args)
         case 'add-song':
             add_song(args)
-        case 'config':
-            ...
         case 'ping':
             print('pong')
-        case 'restart':
-            ...
-        case 'songlist':
-            ...
-        case 'stop':
-            ...
 
 
 if __name__ == '__main__':
