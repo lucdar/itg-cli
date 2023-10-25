@@ -42,16 +42,22 @@ def add_pack(args):
     # check for multiple valid pack directories
     # this usually won't happen, but sometimes "secret" simfiles can cause this
     # or i guess multiple packs bundled together?
-    pack_dirs_set = set(pack_dirs)
-    if len(pack_dirs_set) > 1:
-        print('Multiple valid pack directories found:')
-        pack_dirs_count = {}
-        for candidate in pack_dirs_set:
-            pack_dirs_count[candidate] = pack_dirs.count(candidate)
-        print(pack_dirs_count)
+    pack_dirs = list(set(pack_dirs))
+    if len(pack_dirs) > 1:
+        print('Prompt: Multiple valid pack directories found:')
+        pack_dirs = sorted(pack_dirs, key=len)
+        for i, pack_dir in enumerate(pack_dirs, start=1):
+            print(f"{i}. {pack_dir}")
         # TODO: prompt user to choose a pack directory
-        cleanup(TEMP)
-        raise NotImplementedError('Multiple valid pack directories found')
+        while True:
+            print('Please choose a pack directory to proceed with: ', end='')
+            choice = input()
+            if choice.isdigit() and int(choice) < len(pack_dirs)+1 and int(choice) > 0:
+                print(f'Chosen dir: {pack_dirs[int(choice) - 1]}')
+                pack_dirs = [pack_dirs[int(choice) - 1]]
+                break
+            else:
+                print('Invalid choice. Please choose again.')
 
     try:
         if config_data['delete-macos-files']:  # delete macos files if enabled
@@ -144,10 +150,10 @@ def add_pack(args):
             else:
                 print('Invalid choice')
     else:
-        print('\rNo courses found.'.ljust(24, ' '))
+        print('\rNo courses found.'.ljust(25))
 
     # move pack to packs directory
     shutil.move(pack.pack_dir, os.path.join(PACKS, pack.name))
     print(
-        f"Added pack {'and courses' if added_courses else ''} successfully!")
+        f"Added pack{' and courses ' if added_courses else ' '}successfully!")
     cleanup(TEMP)

@@ -1,5 +1,4 @@
 import argparse
-import os
 from commands.add_song import add_song
 from commands.add_pack import add_pack
 from config import config_data
@@ -12,11 +11,18 @@ def main():
     ### Commands Format ###
     # 'command': (help, [(arg1, help1), (arg2, help2), ...])
     commands = {
-        'add-pack': ('Add a pack from a supplied zip file or link',
-                     [('path', 'path or url to pack')]),
-        'add-song': ('Add a song from a supplied zip file or link',
-                     [('path', 'path or url to song')]),
-        'ping': ('Responds with pong :3', []),
+        'add-pack': (
+            'Add a pack from a supplied zip file or link',
+            [('path', 'path or url to pack')]
+        ),
+        'add-song': (
+            'Add a song from a supplied zip file or link',
+            [('path', 'path or url to song')]
+        ),
+        'ping': (
+            'Responds with pong :3',
+            []
+        ),
     }
 
     parser = argparse.ArgumentParser(description='ITG CLI')
@@ -28,7 +34,6 @@ def main():
 
     args = parser.parse_args()
 
-    # run command based on supplied arguments
     match args.command:
         case 'add-pack':
             add_pack(args)
