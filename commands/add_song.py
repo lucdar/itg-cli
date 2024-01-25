@@ -144,15 +144,13 @@ def add_song(args):
                 # Also delete cache entry
                 if CACHE != '':
                     song_folder_name = os.path.basename(root)
-                    singles_packname = os.path.basename(
-                        os.path.normpath(config_data['singles']))
-                    for cache_entry in os.listdir(os.path.join(CACHE, 'Songs')):
-                        # Cache Files are named Songs_PackName_SongFolderName
-                        _, pack, song = cache_entry.split("_", maxsplit=2)
-                        if pack == singles_packname and song == song_folder_name:
-                            os.remove(os.path.join(
-                                CACHE, 'Songs', cache_entry))
-                break
+                    singles_packname = os.path.basename(os.path.normpath(SINGLES))
+                    cache_entry_name = f"Songs_{singles_packname}_{song_folder_name}"
+                    cache_entry = os.path.join(CACHE, "Songs", cache_entry_name)
+                    if os.path.exists(cache_entry):
+                        os.remove(cache_entry)
+                    else:
+                        print("Warning: Cache entry not found. Skipping.")
             else:
                 print('Invalid choice. Please choose again.')
 
