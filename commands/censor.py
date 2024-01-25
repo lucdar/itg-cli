@@ -9,7 +9,7 @@ SONGS_PATH = config_data['packs']
 CACHE = config_data['cache']
 
 def censor(args):
-    path = args.path
+    path = os.path.abspath(args.path)
     if not os.path.exists(path):
         print(f"Error: {path} does not exist")
         sys.exit(1)

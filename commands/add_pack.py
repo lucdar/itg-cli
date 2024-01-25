@@ -22,7 +22,7 @@ def add_pack(args):
         path = download_file(args.path)
         # print("path to download:", path)
     else:
-        path = args.path
+        path = os.path.abspath(args.path)
 
     validate_path(path, TEMP)
     move_to_temp(path, TEMP)
