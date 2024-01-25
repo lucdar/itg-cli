@@ -48,7 +48,6 @@ def add_pack(args):
         pack_dirs = sorted(pack_dirs, key=len)
         for i, pack_dir in enumerate(pack_dirs, start=1):
             print(f"{i}. {pack_dir}")
-        # TODO: prompt user to choose a pack directory
         while True:
             print('Please choose a pack directory to proceed with: ', end='')
             choice = input()
@@ -131,7 +130,7 @@ def add_pack(args):
             choice = input().lower()
             if choice == 'y':
                 # copy all files in directories with .crs files to courses subfolder
-                # important to copy all files because banners are not .crs files
+                # copy all files because banners are not .crs files
                 courses_subfolder = os.path.join(COURSES, pack.name)
                 if os.path.exists(courses_subfolder):
                     shutil.rmtree(courses_subfolder)
