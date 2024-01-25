@@ -11,6 +11,7 @@ DEFAULT_VALUES = {
     'cache': '',
     'downloads': '',
     'temp_root': os.path.join(PROJ_ROOT, '.temp/'),
+    'censored': os.path.join(PROJ_ROOT, '.censored/'),
     'delete-macos-files': False,
 }
 
@@ -32,7 +33,7 @@ def load_config():
         if config.get(key) == '':
             raise Exception(f'Invalid config: key "{key}" is empty or missing')
         if os.path.exists(config.get(key)) is False:
-            if key == 'temp_root':
+            if key in ['temp_root', 'censored']:
                 os.makedirs(config.get(key))
             else:
                 raise Exception(

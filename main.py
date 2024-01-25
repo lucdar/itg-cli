@@ -1,6 +1,7 @@
 import argparse
 from commands.add_song import add_song
 from commands.add_pack import add_pack
+from commands.censor import censor, uncensor
 from config import config_data
 
 COURSES = config_data['courses']
@@ -18,6 +19,14 @@ def main():
         'add-song': (
             'Add a song from a supplied zip file or link',
             [('path', 'path or url to song')]
+        ),
+        'censor': (
+            'Remove a song from the songs folder and move it to the quarantine folder', 
+            [('path', 'path to song to quarantine')]
+        ),
+        'uncensor': (
+            'Restore a song from the quarantine folder to the songs folder',
+            []
         ),
         'ping': (
             'Responds with pong :3',
@@ -39,6 +48,10 @@ def main():
             add_pack(args)
         case 'add-song':
             add_song(args)
+        case 'censor':
+            censor(args)
+        case 'uncensor':
+            uncensor()
         case 'ping':
             print('pong')
 
