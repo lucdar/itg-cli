@@ -14,15 +14,20 @@ def main():
     commands = {
         'add-pack': (
             'Add a pack from a supplied zip file or link',
-            [('path', 'path or url to pack')]
+            [
+                ('path', 'path or url to pack', 'store'),
+                ('--force', 'skip confirmation', 'store_true')
+            ]
         ),
         'add-song': (
             'Add a song from a supplied zip file or link',
-            [('path', 'path or url to song')]
+            [
+                ('path', 'path or url to song', 'store'),
+            ]
         ),
         'censor': (
-            'Remove a song from the songs folder and move it to the quarantine folder', 
-            [('path', 'path to song to quarantine')]
+            'Remove a song from the songs folder and move it to the quarantine folder',
+            [('path', 'path to song to quarantine', 'store')]
         ),
         'uncensor': (
             'Restore a song from the quarantine folder to the songs folder',
@@ -38,8 +43,8 @@ def main():
     subparsers = parser.add_subparsers(dest='command', required=True)
     for (command, (command_help, args)) in commands.items():
         subparser = subparsers.add_parser(command, help=command_help)
-        for (arg, arg_help) in args:
-            subparser.add_argument(arg, help=arg_help)
+        for (arg, arg_help, action) in args:
+            subparser.add_argument(arg, help=arg_help, action=action)
 
     args = parser.parse_args()
 

@@ -33,6 +33,7 @@ def add_pack(args):
         cleanup(TEMP)
         raise Exception('No valid simfiles found')
     if len(sm_dirs) == 1:
+        # TODO: Exit in this case
         print('Warning: Only one valid simfile found. Did you mean to use add-song?')
     pack_dirs = []
     for sm_dir in sm_dirs:
@@ -44,6 +45,8 @@ def add_pack(args):
     # or i guess multiple packs bundled together?
     pack_dirs = list(set(pack_dirs))
     if len(pack_dirs) > 1:
+        # TODO: Default to picking dir with most
+        # Print warning that multiple valid pack directories were found
         print('Prompt: Multiple valid pack directories found:')
         pack_dirs = sorted(pack_dirs, key=len)
         for i, pack_dir in enumerate(pack_dirs, start=1):
@@ -51,22 +54,17 @@ def add_pack(args):
         while True:
             print('Please choose a pack directory to proceed with: ', end='')
             choice = input()
-            if choice.isdigit() and int(choice) < len(pack_dirs)+1 and int(choice) > 0:
+            if choice.isdigit() and int(choice) in range(0, len(pack_dirs)):
                 print(f'Chosen dir: {pack_dirs[int(choice) - 1]}')
                 pack_dirs = [pack_dirs[int(choice) - 1]]
                 break
             else:
                 print('Invalid choice. Please choose again.')
 
-    try:
-        if config_data['delete-macos-files']:  # delete macos files if enabled
-            delete_macos_files(pack_dirs[0])
-        pack = SimfilePack(pack_dirs[0])
-    except Exception as e:
-        # if DuplicateSimfileError, then uhhh idk
-        if e.__class__.__name__ == 'DuplicateSimfileError':
-            raise NotImplementedError(
-                'A song with multiple .sm or .ssc files has been detected. This is not supported yet.')
+    if config_data['delete-macos-files']:  # delete macos files if enabled
+        delete_macos_files(pack_dirs[0])
+
+    pack = SimfilePack(pack_dirs[0])
     songs = list(pack.simfiles())
 
     # print pack metadata
@@ -74,7 +72,7 @@ def add_pack(args):
     print(f"{pack.name} contains {len(songs)} songs:")
     for song in songs:
         print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
-    while True:
+    while not config_data['force']:
         print("Prompt: Do you want to add this pack? [Y/n] ", end="")
         choice = input().lower()
         if choice == 'y':
@@ -92,26 +90,24 @@ def add_pack(args):
             delete_macos_files(dest)
         existing_pack = SimfilePack(dest)
         existing_songs = list(existing_pack.simfiles())
-        difference = len(songs) - len(existing_songs)
-        if difference == 0:
-            print('Prompt: Pack already exists (with the same number of songs).')
-        elif difference > 0:
-            print(
-                f"Prompt: Pack already exists with {difference} fewer songs.")
-        else:  # difference < 0
-            print(
-                f"Prompt: Pack already exists with {abs(difference)} more songs.")
-        while True:
+        diff = len(songs) - len(existing_songs)
+        if diff > 0:
+            print(f"Prompt: Pack already exists with {-diff} more songs.")
+        elif diff < 0:
+            print(f"Prompt: Pack already exists with {diff} fewer songs.")
+        else: # difference == 0
+            print('Prompt: Pack already exists with the same number of songs.')
+        while not config_data['force']:
             print('[O]verwrite or keep [E]xisting pack? ', end='')
             choice = input().lower()
             if choice == 'o':
-                shutil.rmtree(dest)
                 break
             elif choice == 'e':
                 cleanup(TEMP)
                 return
             else:
                 print('Invalid choice')
+        shutil.rmtree(dest)
 
     # look for a Courses folder containing files with .crs extension
     print('Searching for courses...', end='')
@@ -122,6 +118,7 @@ def add_pack(args):
             if file.endswith('.crs') and 'Courses' in root:
                 crs_dirs.append(os.path.join(root, file))
     if len(crs_dirs) > 0:
+        # TODO: Add Courses by default
         print(f"\rFound {len(crs_dirs)} courses:".ljust(24, ' '))
         for crs in crs_dirs:
             print(f"  {os.path.basename(crs)}")
