@@ -72,16 +72,6 @@ def add_pack(args):
     print(f"{pack.name} contains {len(songs)} songs:")
     for song in songs:
         print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
-    while not config_data['force']:
-        print("Prompt: Do you want to add this pack? [Y/n] ", end="")
-        choice = input().lower()
-        if choice == 'y':
-            break
-        elif choice == 'n':
-            cleanup(TEMP)
-            return
-        else:
-            print('Invalid choice')
 
     # check if pack already exists
     dest = os.path.join(PACKS, pack.name)
@@ -97,7 +87,7 @@ def add_pack(args):
             print(f"Prompt: Pack already exists with {-diff} more songs.")
         else: # difference == 0
             print('Prompt: Pack already exists with the same number of songs.')
-        if not config_data['force']:
+        if not config_data['overwrite']:
             prompt_overwrite(pack, TEMP)
         shutil.rmtree(dest)
 

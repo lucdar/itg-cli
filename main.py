@@ -16,14 +16,14 @@ def main():
             'Add a pack from a supplied zip file or link',
             [
                 ('path', 'path or url to pack', 'store'),
-                ('--force', 'skip confirmation', 'store_true')
+                ('--overwrite', 'skip overwrite confirmation', 'store_true')
             ]
         ),
         'add-song': (
             'Add a song from a supplied zip file or link',
             [
                 ('path', 'path or url to song', 'store'),
-                ('--force', 'skip confirmation', 'store_true')
+                ('--overwrite', 'skip overwrite confirmation', 'store_true')
             ]
         ),
         'censor': (
