@@ -43,7 +43,7 @@ def print_simfile_data(sm: Simfile, label: str = 'data') -> None:
 
 def get_charts_as_ints(sm: Simfile, default: int = 0) -> list[int]:
     """
-    Returns a list of charts as integers. 
+    Returns a list of charts as integers.
     If the meter in the simfile is not a number, it will be replaced with the `default` value.
     """
     charts = sm.charts
@@ -59,7 +59,7 @@ def get_charts_as_ints(sm: Simfile, default: int = 0) -> list[int]:
 
 def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     """
-    Returns the string representation of chart meters of a simfile (with quotes removed). 
+    Returns the string representation of chart meters of a simfile (with quotes removed).
     Also includes the difficulty label if `difficulty_labels` is True.
 
     Example:
@@ -68,9 +68,9 @@ def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     """
     charts = sm.charts
     if difficulty_labels:
-        def fn(c): return f'{c.difficulty} {c.meter}'
+        fn = lambda c: f'{c.difficulty} {c.meter}'
     else:
-        def fn(c): return c.meter
+        fn = lambda c: c.meter
     return str(list(map(fn, charts))).replace("'", "")
 
 
@@ -104,3 +104,22 @@ def move_to_temp(path: str, TEMP: str):
         except Exception as e:
             cleanup(TEMP)
             raise Exception('Error extracting archive: ', e)
+
+
+def prompt_overwrite(item: str, temp: str):
+    """
+    Prompts the user to overwrite the existing `item`.
+    Calls `cleanup(temp)` and exits if existing item is kept.
+    """
+    while True:
+        print(f"Overwrite existing {item}? [Y/n]", end='')
+        match input().lower():
+            case 'y' | '':
+                print(f"Overwriting exisiting {item}")
+                break
+            case 'n':
+                cleanup(temp)
+                print(f"Keeping existing {item}")
+                exit(1)
+            case _:
+                print('Invalid choice')

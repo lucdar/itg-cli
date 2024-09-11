@@ -13,14 +13,6 @@ SINGLES = config_data['singles']
 CACHE = config_data['cache']
 
 
-def print_simfile_data(sm: Simfile, label: str = 'data'):
-    print(f"### {label} ###",
-          "  Title: " + sm.title,
-          " Artist: " + sm.artist,
-          " Meters: " + str(get_charts_string(sm)).replace("'", ""),
-          sep='\n', end='\n\n')
-
-
 def print_simfile_choices(simfiles: list[Simfile], jsonOutput=False) -> None:
     total = len(simfiles)
     if jsonOutput:
@@ -73,6 +65,7 @@ def add_song(args):
     elif len(sm_dirs) == 1:
         root = sm_dirs[0]
     else:
+    # TODO: Exit in this case
         print('Prompt: Multiple valid simfiles found:')
         found_simfiles: list[Simfile] = []
         found_simfile_paths: list[str] = []
@@ -96,7 +89,6 @@ def add_song(args):
             else:
                 print('Invalid choice. Please choose again.')
 
-    print('Song found at', root)
     print('Moving song to singles folder...')
 
     if config_data['delete-macos-files']:  # delete macos files if enabled
@@ -121,38 +113,29 @@ def add_song(args):
     # check if song folder already exists in singles folder
     dest = os.path.join(SINGLES, os.path.basename(root))
     if os.path.exists(dest):
-        # TODO: output a diff of simfile metadata
-        if config_data['delete-macos-files']:  # delete macos files if enabled
-            delete_macos_files(dest)
-        sm_new = simfile.opendir(root, strict=False)[0]
-        sm_old = simfile.opendir(dest, strict=False)[0]
-        print('Simfile dectected at destination.')
-        print_simfile_data(sm_new, "New Simfile")
-        print_simfile_data(sm_old, "Old Simfile")
-        while True:
+        if not config_data['force']:
+            # TODO: output a diff of simfile metadata
+            if config_data['delete-macos-files']:  # delete macos files if enabled
+                delete_macos_files(dest)
+
             print('Prompt: A folder with the same name already exists.')
-            print(
-                'Do you want to keep the [E]xisting simfile, or [O]verwrite? ', end='')
-            choice = input().lower()
-            if choice == 'e':
-                print('Keeping old simfile. Exiting.\n')
-                cleanup(TEMP)
-                exit(0)
-            elif choice == 'o':
-                print('Overwriting old simfile.\n')
-                shutil.rmtree(dest)
-                # Also delete cache entry
-                if CACHE != '':
-                    song_folder_name = os.path.basename(root)
-                    singles_packname = os.path.basename(os.path.normpath(SINGLES))
-                    cache_entry_name = f"Songs_{singles_packname}_{song_folder_name}"
-                    cache_entry = os.path.join(CACHE, "Songs", cache_entry_name)
-                    if os.path.exists(cache_entry):
-                        os.remove(cache_entry)
-                    else:
-                        print("Warning: Cache entry not found. Skipping.")
+            sm_old = simfile.opendir(dest, strict=False)[0]
+            print_simfile_data(sm_old, "Old Simfile")
+            sm_new = simfile.opendir(root, strict=False)[0]
+            print_simfile_data(sm_new, "New Simfile")
+            prompt_overwrite("simfile", TEMP)
+
+        shutil.rmtree(dest)
+        # Also delete cache entry if chache is supplied in config
+        if CACHE != '':
+            song_folder_name = os.path.basename(root)
+            singles_packname = os.path.basename(os.path.normpath(SINGLES))
+            cache_entry_name = f"Songs_{singles_packname}_{song_folder_name}"
+            cache_entry = os.path.join(CACHE, "Songs", cache_entry_name)
+            if os.path.exists(cache_entry):
+                os.remove(cache_entry)
             else:
-                print('Invalid choice. Please choose again.')
+                print("Warning: Cache entry not found. Skipping.")
 
     # Move the song to the singles folder
     shutil.move(root, dest)

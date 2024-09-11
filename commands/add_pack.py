@@ -92,21 +92,13 @@ def add_pack(args):
         existing_songs = list(existing_pack.simfiles())
         diff = len(songs) - len(existing_songs)
         if diff > 0:
-            print(f"Prompt: Pack already exists with {-diff} more songs.")
-        elif diff < 0:
             print(f"Prompt: Pack already exists with {diff} fewer songs.")
+        elif diff < 0:
+            print(f"Prompt: Pack already exists with {-diff} more songs.")
         else: # difference == 0
             print('Prompt: Pack already exists with the same number of songs.')
-        while not config_data['force']:
-            print('[O]verwrite or keep [E]xisting pack? ', end='')
-            choice = input().lower()
-            if choice == 'o':
-                break
-            elif choice == 'e':
-                cleanup(TEMP)
-                return
-            else:
-                print('Invalid choice')
+        if not config_data['force']:
+            prompt_overwrite(pack, TEMP)
         shutil.rmtree(dest)
 
     # look for a Courses folder containing files with .crs extension

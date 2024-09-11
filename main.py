@@ -23,6 +23,7 @@ def main():
             'Add a song from a supplied zip file or link',
             [
                 ('path', 'path or url to song', 'store'),
+                ('--force', 'skip confirmation', 'store_true')
             ]
         ),
         'censor': (
