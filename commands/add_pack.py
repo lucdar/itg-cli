@@ -101,47 +101,36 @@ def add_pack(args):
             prompt_overwrite(pack, TEMP)
         shutil.rmtree(dest)
 
-    # look for a Courses folder containing files with .crs extension
-    print('Searching for courses...', end='')
+    # look for a Courses folder countaining .crs files
     added_courses = False
-    crs_dirs: list[str] = []
+    crs_dirs = []
     for root, _, files in os.walk(TEMP):
         for file in files:
             if file.endswith('.crs') and 'Courses' in root:
                 crs_dirs.append(os.path.join(root, file))
     if len(crs_dirs) > 0:
-        # TODO: Add Courses by default
-        print(f"\rFound {len(crs_dirs)} courses:".ljust(24, ' '))
+        print(f"Found {len(crs_dirs)} courses:")
         for crs in crs_dirs:
             print(f"  {os.path.basename(crs)}")
-        while True:
-            print('Prompt: Do you want to add these courses? [Y/n] ', end='')
-            choice = input().lower()
-            if choice == 'y':
-                # copy all files in directories with .crs files to courses subfolder
-                # copy all files because banners are not .crs files
-                courses_subfolder = os.path.join(COURSES, pack.name)
-                if os.path.exists(courses_subfolder):
-                    shutil.rmtree(courses_subfolder)
-                os.mkdir(courses_subfolder)
-                courses_dirs = [os.path.dirname(crs) for crs in crs_dirs]
-                courses_dirs_set = set(courses_dirs)
-                for courses_dir in courses_dirs_set:
-                    for file in os.listdir(courses_dir):
-                        file_dir = os.path.join(courses_dir, file)
-                        if os.path.isfile(file_dir):
-                            shutil.copy(file_dir, courses_subfolder)
-                added_courses = True
-                break
-            elif choice == 'n':
-                break
-            else:
-                print('Invalid choice')
-    else:
-        print('\rNo courses found.'.ljust(25))
+        if COURSES != '':
+            # copy all files in directories with .crs files to courses subfolder
+            # course banners are not .crs files
+            courses_subfolder = os.path.join(COURSES, pack.name)
+            if os.path.exists(courses_subfolder):
+                shutil.rmtree(courses_subfolder)
+            os.mkdir(courses_subfolder)
+            # containing folders for courses
+            courses_dirs = [os.path.dirname(crs) for crs in crs_dirs]
+            courses_dirs_set = set(courses_dirs)
+            for courses_dir in courses_dirs_set:
+                for file in os.listdir(courses_dir):
+                    file_dir = os.path.join(courses_dir, file)
+                    if os.path.isfile(file_dir):
+                        shutil.copy(file_dir, courses_subfolder)
+            added_courses = True
 
     # move pack to packs directory
     shutil.move(pack.pack_dir, os.path.join(PACKS, pack.name))
     print(
-        f"Added pack{' and courses ' if added_courses else ' '}successfully!")
+        f"Added pack {'and courses ' if added_courses else ''}successfully!")
     cleanup(TEMP)
