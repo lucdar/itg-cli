@@ -112,14 +112,14 @@ def prompt_overwrite(item: str, temp: str):
     Calls `cleanup(temp)` and exits if existing item is kept.
     """
     while True:
-        print(f"Overwrite existing {item}? [Y/n]", end='')
+        print(f"Overwrite existing {item}? [Y/n] ", end='')
         match input().lower():
             case 'y' | '':
-                print(f"Overwriting exisiting {item}")
+                print(f"Overwriting exisiting {item}.")
                 break
             case 'n':
                 cleanup(temp)
-                print(f"Keeping existing {item}")
+                print(f"Keeping existing {item}.")
                 exit(1)
             case _:
                 print('Invalid choice')

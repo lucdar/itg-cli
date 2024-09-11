@@ -68,7 +68,6 @@ def add_pack(args):
     songs = list(pack.simfiles())
 
     # print pack metadata
-    print("Pack metadata:")
     print(f"{pack.name} contains {len(songs)} songs:")
     for song in songs:
         print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
@@ -87,8 +86,8 @@ def add_pack(args):
             print(f"Prompt: Pack already exists with {-diff} more songs.")
         else: # difference == 0
             print('Prompt: Pack already exists with the same number of songs.')
-        if not config_data['overwrite']:
-            prompt_overwrite(pack, TEMP)
+        if 'overwrite' not in config_data:
+            prompt_overwrite("pack", TEMP)
         shutil.rmtree(dest)
 
     # look for a Courses folder countaining .crs files
