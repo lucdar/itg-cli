@@ -87,8 +87,8 @@ def add_pack(args):
             print(f"Prompt: Pack already exists with {-diff} more songs.")
         else:  # difference == 0
             print("Prompt: Pack already exists with the same number of songs.")
-        if "overwrite" not in args:
-            prompt_overwrite("pack")
+        if not ("overwrite" in args or prompt_overwrite("pack")):
+            exit(1)
         shutil.rmtree(dest)
 
     # look for a Courses folder countaining .crs files

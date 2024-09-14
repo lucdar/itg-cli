@@ -101,7 +101,7 @@ def move_to_temp(path: str, TEMP: str):
 def prompt_overwrite(item: str):
     """
     Prompts the user to overwrite the existing `item`.
-    Exits if existing item is kept.
+    Overwriting returns `True`, Keeping returns `False`.
     """
     while True:
         print(f"Overwrite existing {item}? [Y/n] ", end="")
@@ -111,6 +111,5 @@ def prompt_overwrite(item: str):
                 break
             case "n":
                 print(f"Keeping existing {item}.")
-                exit(1)
             case _:
                 print("Invalid choice")
