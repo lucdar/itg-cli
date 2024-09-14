@@ -30,21 +30,18 @@ def download_file(url):
     #     # Detect installation of megacmd
     #     if shutil.which('megacmd') is None:
     #         raise Exception('Error: megacmd not installed')
-    if "drive.google.com" in url:
+    if "drive.google.com" in url or "drive.usercontent.google.com" in url:
         # TODO: look into removing temporary directory and move
-        filename = gdown.download(
-            url, quiet=False, fuzzy=True, output=TemporaryDirectory()
-        )
-        loc = os.path.join(os.getcwd(), filename)
-        dest = os.path.join(DOWNLOADS, filename)
-        # if file exists already prompt user to overwrite
-        if os.path.exists(dest):
-            if prompt_overwrite("downloaded file"):
+        with TemporaryDirectory() as tempdir:
+            loc = gdown.download(
+                url, quiet=False, fuzzy=True, output=os.path.join(tempdir, "")
+            )
+            filename = os.path.basename(loc)
+            dest = os.path.join(DOWNLOADS, filename)
+            if os.path.exists(dest):
                 os.remove(dest)
-                shutil.move(loc, dest)
-        else:
             shutil.move(loc, dest)
-        return dest
+            return dest
     else:  # try using requests
         r = requests.get(url, allow_redirects=True)
         if r.status_code != 200:
