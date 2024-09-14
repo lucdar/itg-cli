@@ -9,7 +9,7 @@ def is_writable_dir(s: str) -> bool:
 
 settings = Dynaconf(
     envvar_prefix="ITG_CLI",  # export envvars with `export ITG_CLI_FOO=bar`.
-    settings_files=["settings.toml"],
+    settings_files=["settings_template.toml", "settings.toml"],
     validators=[
         Validator(key, condition=lambda s: is_writable_dir)
         for key in ["PACKS", "SINGLES", "COURSES", "CACHE", "DOWNLOADS"]

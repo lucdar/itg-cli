@@ -1,5 +1,6 @@
 # ITG CLI Configuration File Template
-# Fill in the values to use the cli. 
+# Fill in the values to use the cli.
+# You may copy and rename this file to settings.toml to preserve the template format.
 
 # The path to the folder you want to add packs to.
 # e.g. /home/user/.itgmania/Songs
