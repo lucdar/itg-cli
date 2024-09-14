@@ -5,6 +5,7 @@ import os
 import pyrfc6266
 import tqdm
 from config import settings
+from add_utils import prompt_overwrite
 
 DOWNLOADS = settings.downloads
 TMP_ROOT = settings.temp
@@ -39,8 +40,6 @@ def download_file(url):
             if prompt_overwrite():
                 os.remove(dest)
                 shutil.move(loc, dest)
-            else:
-                os.remove(loc)
         else:
             shutil.move(loc, dest)
         return dest
@@ -80,20 +79,3 @@ def download_file(url):
         else:
             print("Invalid Content-Type:", r.headers["Content-Type"])
             exit(1)
-
-
-def prompt_overwrite():
-    """
-    Prompts the user to overwrite a file if one exists with the same name.
-    Returns True if the file should be overwritten, False if the old file should be used instead.
-    """
-    print("Prompt: Overwrite cached download file?")
-    print("Use [E]xisting file or [O]verwrite?")
-    while True:
-        res = input()
-        if res.lower() == "e":
-            return False
-        elif res.lower() == "o":
-            return True
-        else:
-            print("Invalid input. Please enter E or O.")
