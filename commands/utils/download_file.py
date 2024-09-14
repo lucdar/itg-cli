@@ -6,7 +6,7 @@ import pyrfc6266
 import tqdm
 from tempfile import TemporaryDirectory
 from config import settings
-from add_utils import prompt_overwrite
+from .add_utils import prompt_overwrite
 
 DOWNLOADS = settings.downloads
 
