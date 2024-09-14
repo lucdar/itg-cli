@@ -2,11 +2,11 @@ import simfile
 import os
 import shutil
 import sys
-from config import config_data
+from config import settings
 
-CENSORED_PATH = config_data["censored"]
-SONGS_PATH = config_data["packs"]
-CACHE = config_data["cache"]
+CENSORED_PATH = settings.censored
+SONGS_PATH = settings.packs
+CACHE = settings.cache
 
 
 def censor(args):

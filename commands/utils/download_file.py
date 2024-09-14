@@ -4,10 +4,10 @@ import shutil
 import os
 import pyrfc6266
 import tqdm
-from config import config_data
+from config import settings
 
-DOWNLOADS = config_data["downloads"]
-TMP_ROOT = config_data["temp_root"]
+DOWNLOADS = settings.downloads
+TMP_ROOT = settings.temp_root
 
 
 def download_file(url):

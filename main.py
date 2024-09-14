@@ -2,15 +2,9 @@ import argparse
 from commands.add_song import add_song
 from commands.add_pack import add_pack
 from commands.censor import censor, uncensor
-from config import config_data
-
-COURSES = config_data["courses"]
-TEMP_ROOT = config_data["temp_root"]
-
 
 def main():
-    ### Commands Format ###
-    # 'command': (help, [(arg1, help1), (arg2, help2), ...])
+    # 'command': (help, [(arg1, help1, action1), (arg2, help2, action2), ...])
     commands = {
         "add-pack": (
             "Add a pack from a supplied zip file or link",

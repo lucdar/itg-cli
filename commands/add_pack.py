@@ -11,11 +11,11 @@ from .utils.add_utils import (
     get_charts_string,
     prompt_overwrite,
 )
-from config import config_data
+from config import settings
 
-TEMP_ROOT = config_data["temp_root"]
-PACKS = config_data["packs"]
-COURSES = config_data["courses"]
+TEMP_ROOT = settings.temp
+PACKS = settings.packs
+COURSES = settings.courses
 
 
 def add_pack(args):
@@ -69,7 +69,7 @@ def add_pack(args):
             else:
                 print("Invalid choice. Please choose again.")
 
-    if config_data["delete-macos-files"]:  # delete macos files if enabled
+    if settings.delete_macos_files:  # delete macos files if enabled
         delete_macos_files(pack_dirs[0])
 
     pack = SimfilePack(pack_dirs[0])
@@ -83,7 +83,7 @@ def add_pack(args):
     # check if pack already exists
     dest = os.path.join(PACKS, pack.name)
     if os.path.exists(dest):
-        if config_data["delete-macos-files"]:  # delete macos files if enabled
+        if settings.delete_macos_files:  # delete macos files if enabled
             delete_macos_files(dest)
         existing_pack = SimfilePack(dest)
         existing_songs = list(existing_pack.simfiles())
@@ -94,7 +94,7 @@ def add_pack(args):
             print(f"Prompt: Pack already exists with {-diff} more songs.")
         else:  # difference == 0
             print("Prompt: Pack already exists with the same number of songs.")
-        if "overwrite" not in config_data:
+        if "overwrite" not in args:
             prompt_overwrite("pack", TEMP)
         shutil.rmtree(dest)
 

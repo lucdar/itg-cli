@@ -15,11 +15,11 @@ from .utils.add_utils import (
     print_simfile_data,
     prompt_overwrite
 )
-from config import config_data
+from config import settings
 
-TEMP_ROOT = config_data["temp_root"]
-SINGLES = config_data["singles"]
-CACHE = config_data["cache"]
+TEMP_ROOT = settings.temp
+SINGLES = settings.singles
+CACHE = settings.cache
 
 
 def print_simfile_choices(simfiles: list[Simfile], jsonOutput=False) -> None:
@@ -102,7 +102,7 @@ def add_song(args):
 
     print("Moving song to singles folder...")
 
-    if config_data["delete-macos-files"]:  # delete macos files if enabled
+    if settings.delete_macos_files:  # delete macos files if enabled
         delete_macos_files(root)
 
     # rename folder to zip name if no containing folder
@@ -124,9 +124,9 @@ def add_song(args):
     # check if song folder already exists in singles folder
     dest = os.path.join(SINGLES, os.path.basename(root))
     if os.path.exists(dest):
-        if "overwrite" not in config_data:
+        if "overwrite" not in args:
             # TODO: output a diff of simfile metadata
-            if config_data["delete-macos-files"]:  # delete macos files if enabled
+            if settings.delete_macos_files:  # delete macos files if enabled
                 delete_macos_files(dest)
 
             print("Prompt: A folder with the same name already exists.")

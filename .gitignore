@@ -162,3 +162,5 @@ cython_debug/
 # ITG-CLI stuff
 .temp/
 config.yaml
+# Ignore dynaconf secret files
+.secrets.*
