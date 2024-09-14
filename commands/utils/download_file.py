@@ -7,7 +7,7 @@ import tqdm
 from config import settings
 
 DOWNLOADS = settings.downloads
-TMP_ROOT = settings.temp_root
+TMP_ROOT = settings.temp
 
 
 def download_file(url):
