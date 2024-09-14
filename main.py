@@ -2,9 +2,13 @@ import argparse
 from commands.add_song import add_song
 from commands.add_pack import add_pack
 from commands.censor import censor, uncensor
-
+from config import settings
 
 subparser_dict = {
+    # "subcommand": (
+    #     { subcommand kwargs },
+    #     { "subcommand arg": { subcommand arg kwargs } }
+    # ),
     "add-pack": (
         {"help": "Add a pack from a supplied directory or link"},
         {
@@ -38,25 +42,32 @@ subparser_dict = {
     "ping": ({"help": "responds with pong :3"}, {}),
 }
 
-def main():
+
+def process_args(subparser_dict):
     parser = argparse.ArgumentParser(description="ITG CLI")
-    subparsers = parser.add_subparsers(dest="command", required=True, )
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True,
+    )
     for subcommand, (kwargs, subcommand_args) in subparser_dict.items():
         subparser = subparsers.add_parser(subcommand, **kwargs)
         for arg, kwargs in subcommand_args.items():
             subparser.add_argument(arg, **kwargs)
+    return parser.parse_args()
 
-    args = parser.parse_args()
+
+def main():
+    args = process_args(subparser_dict)
 
     match args.command:
         case "add-pack":
-            add_pack(args)
+            add_pack(args, settings)
         case "add-song":
-            add_song(args)
+            add_song(args, settings)
         case "censor":
-            censor(args)
+            censor(args, settings)
         case "uncensor":
-            uncensor()
+            uncensor(settings)
         case "ping":
             print("pong")
 
