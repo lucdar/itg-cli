@@ -1,12 +1,9 @@
 import requests
 import gdown
-import shutil
 import os
 import pyrfc6266
 import tqdm
-from tempfile import TemporaryDirectory
 from config import settings
-from .add_utils import prompt_overwrite
 
 DOWNLOADS = settings.downloads
 
@@ -17,30 +14,11 @@ def download_file(url):
     Processes Google drive links using gdown and attempts to download other files using requests.
     Prints a progress bar to stderr.
     """
-    # create DOWNLOADS folder if it doesn't exist
-    if os.path.exists(DOWNLOADS) is False:
-        os.mkdir(DOWNLOADS)
-
-    if url.startswith("http") is False:
-        print("Invalid URL:", url)
-        exit(1)
-
-    # if 'mega.nz' in url or 'mega.co.nz' in url:
-    #     # Detect installation of megacmd
-    #     if shutil.which('megacmd') is None:
-    #         raise Exception('Error: megacmd not installed')
+    # TODO: handle mega.nz links
     if "drive.google.com" in url or "drive.usercontent.google.com" in url:
-        # TODO: look into removing temporary directory and move
-        with TemporaryDirectory() as tempdir:
-            loc = gdown.download(
-                url, quiet=False, fuzzy=True, output=os.path.join(tempdir, "")
-            )
-            filename = os.path.basename(loc)
-            dest = os.path.join(DOWNLOADS, filename)
-            if os.path.exists(dest):
-                os.remove(dest)
-            shutil.move(loc, dest)
-            return dest
+        return gdown.download(
+            url, quiet=False, fuzzy=True, output=os.path.join(DOWNLOADS, "")
+        )
     else:  # try using requests
         r = requests.get(url, allow_redirects=True)
         if r.status_code != 200:
