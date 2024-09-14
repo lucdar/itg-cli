@@ -117,7 +117,7 @@ def add_song(args):
         # check if song folder already exists in singles folder
         dest = os.path.join(SINGLES, os.path.basename(root))
         if os.path.exists(dest):
-            if "overwrite" not in args:
+            if not args.overwrite:
                 # TODO: output a diff of simfile metadata
                 if settings.delete_macos_files:  # delete macos files if enabled
                     delete_macos_files(dest)

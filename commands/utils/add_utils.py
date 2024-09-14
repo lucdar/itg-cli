@@ -108,8 +108,9 @@ def prompt_overwrite(item: str) -> bool:
         match input().lower():
             case "y" | "":
                 print(f"Overwriting exisiting {item}.")
-                break
+                return True
             case "n":
                 print(f"Keeping existing {item}.")
+                return False
             case _:
                 print("Invalid choice")

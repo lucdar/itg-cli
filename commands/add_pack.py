@@ -87,7 +87,7 @@ def add_pack(args):
                 print(f"Prompt: Pack already exists with {-diff} more songs.")
             else:  # difference == 0
                 print("Prompt: Pack already exists with the same number of songs.")
-            if not ("overwrite" in args or prompt_overwrite("pack")):
+            if not (args.overwrite or prompt_overwrite("pack")):
                 exit(1)
             shutil.rmtree(dest)
 

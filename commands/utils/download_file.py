@@ -14,7 +14,6 @@ DOWNLOADS = settings.downloads
 def download_file(url):
     """
     Downloads a file from a URL to the downloads folder and returns a path to the downloaded file.
-    If the file already exists, prompts the user to overwrite it or use the existing file.
     Processes Google drive links using gdown and attempts to download other files using requests.
     Prints a progress bar to stderr.
     """
@@ -60,10 +59,7 @@ def download_file(url):
                 filename = pyrfc6266.parse_filename(r.headers["Content-Disposition"])
             dest = os.path.join(DOWNLOADS, filename)
             if os.path.exists(dest):
-                if prompt_overwrite("downloaded file") is False:
-                    return dest
-                else:
-                    os.remove(dest)
+                os.remove(dest)
             chunk_size = 128
             total_size = r.headers.get("content-length", None)
             if total_size is not None:
