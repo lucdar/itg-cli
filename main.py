@@ -3,40 +3,48 @@ from commands.add_song import add_song
 from commands.add_pack import add_pack
 from commands.censor import censor, uncensor
 
-def main():
-    # 'command': (help, [(arg1, help1, action1), (arg2, help2, action2), ...])
-    commands = {
-        "add-pack": (
-            "Add a pack from a supplied zip file or link",
-            [
-                ("path", "path or url to pack", "store"),
-                ("--overwrite", "skip overwrite confirmation", "store_true"),
-            ],
-        ),
-        "add-song": (
-            "Add a song from a supplied zip file or link",
-            [
-                ("path", "path or url to song", "store"),
-                ("--overwrite", "skip overwrite confirmation", "store_true"),
-            ],
-        ),
-        "censor": (
-            "Remove a song from the songs folder and move it to the quarantine folder",
-            [("path", "path to song to quarantine", "store")],
-        ),
-        "uncensor": (
-            "Restore a song from the quarantine folder to the songs folder",
-            [],
-        ),
-        "ping": ("Responds with pong :3", []),
-    }
 
+subparser_dict = {
+    "add-pack": (
+        {"help": "Add a pack from a supplied directory or link"},
+        {
+            "path": {"help": "path or url to pack"},
+            "--overwrite": {
+                "help": "skip overwrite confirmation",
+                "action": "store_true",
+            },
+        },
+    ),
+    "add-song": (
+        {"help": "Add a song from a supplied directory or link"},
+        {
+            "path": {"help": "path or url to song"},
+            "--overwrite": {
+                "help": "skip overwrite confirmation",
+                "action": "store_true",
+            },
+        },
+    ),
+    "censor": (
+        {"help": "Move a song from the songs folder to the quarantine folder"},
+        {"path": {"help": "path to song to quarantine"}},
+    ),
+    "uncensor": (
+        {
+            "help": "Displays a list of quarantined songs. Select a song to move back to the songs folder."
+        },
+        {},
+    ),
+    "ping": ({"help": "responds with pong :3"}, {}),
+}
+
+def main():
     parser = argparse.ArgumentParser(description="ITG CLI")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    for command, (command_help, args) in commands.items():
-        subparser = subparsers.add_parser(command, help=command_help)
-        for arg, arg_help, action in args:
-            subparser.add_argument(arg, help=arg_help, action=action)
+    subparsers = parser.add_subparsers(dest="command", required=True, )
+    for subcommand, (kwargs, subcommand_args) in subparser_dict.items():
+        subparser = subparsers.add_parser(subcommand, **kwargs)
+        for arg, kwargs in subcommand_args.items():
+            subparser.add_argument(arg, **kwargs)
 
     args = parser.parse_args()
 
