@@ -1,10 +1,9 @@
 import os
 import shutil
+from tempfile import TemporaryDirectory
 from simfile.dir import SimfilePack
 from .utils.download_file import download_file
 from .utils.add_utils import (
-    cleanup,
-    validate_path,
     move_to_temp,
     find_simfile_dirs,
     delete_macos_files,
@@ -13,32 +12,26 @@ from .utils.add_utils import (
 )
 from config import settings
 
-TEMP_ROOT = settings.temp
+TEMP = TemporaryDirectory()
 PACKS = settings.packs
 COURSES = settings.courses
 
 
 def add_pack(args):
-    # create random temp subdirectory directory name
-    TEMP = os.path.join(TEMP_ROOT, os.urandom(8).hex())
-
-    # clear temp directory if not empty
-    cleanup(TEMP)
-
     # download file if URL
     if args.path.startswith("http"):
         path = download_file(args.path)
         # print("path to download:", path)
     else:
         path = os.path.abspath(args.path)
-
-    validate_path(path, TEMP)
+    
+    if os.path.exists(path) is False:
+        raise Exception("Invalid path:", path)
     move_to_temp(path, TEMP)
 
     # identify simfile paths
     sm_dirs = find_simfile_dirs(TEMP)
     if len(sm_dirs) == 0:
-        cleanup(TEMP)
         raise Exception("No valid simfiles found")
     if len(sm_dirs) == 1:
         # TODO: Exit in this case
@@ -95,7 +88,7 @@ def add_pack(args):
         else:  # difference == 0
             print("Prompt: Pack already exists with the same number of songs.")
         if "overwrite" not in args:
-            prompt_overwrite("pack", TEMP)
+            prompt_overwrite("pack")
         shutil.rmtree(dest)
 
     # look for a Courses folder countaining .crs files
@@ -129,4 +122,3 @@ def add_pack(args):
     # move pack to packs directory
     shutil.move(pack.pack_dir, os.path.join(PACKS, pack.name))
     print(f"Added pack {'and courses ' if added_courses else ''}successfully!")
-    cleanup(TEMP)

@@ -4,11 +4,11 @@ import shutil
 import os
 import pyrfc6266
 import tqdm
+from tempfile import TemporaryDirectory
 from config import settings
 from add_utils import prompt_overwrite
 
 DOWNLOADS = settings.downloads
-TMP_ROOT = settings.temp
 
 
 def download_file(url):
@@ -31,13 +31,15 @@ def download_file(url):
     #     if shutil.which('megacmd') is None:
     #         raise Exception('Error: megacmd not installed')
     if "drive.google.com" in url:
-        os.chdir(TMP_ROOT)  # change cwd to temp folder
-        filename = gdown.download(url, quiet=False, fuzzy=True)
+        # TODO: look into removing temporary directory and move
+        filename = gdown.download(
+            url, quiet=False, fuzzy=True, output=TemporaryDirectory()
+        )
         loc = os.path.join(os.getcwd(), filename)
         dest = os.path.join(DOWNLOADS, filename)
         # if file exists already prompt user to overwrite
         if os.path.exists(dest):
-            if prompt_overwrite():
+            if prompt_overwrite("downloaded file"):
                 os.remove(dest)
                 shutil.move(loc, dest)
         else:
@@ -61,7 +63,7 @@ def download_file(url):
                 filename = pyrfc6266.parse_filename(r.headers["Content-Disposition"])
             dest = os.path.join(DOWNLOADS, filename)
             if os.path.exists(dest):
-                if prompt_overwrite() is False:
+                if prompt_overwrite("downloaded file") is False:
                     return dest
                 else:
                     os.remove(dest)

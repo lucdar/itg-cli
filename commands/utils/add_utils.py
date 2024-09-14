@@ -3,12 +3,6 @@ import shutil
 from simfile.types import Simfile, Chart
 
 
-def cleanup(path) -> None:
-    """Remove the supplied directory and its contents if it exists"""
-    if os.path.exists(path):
-        shutil.rmtree(path)
-
-
 def extract_archive(path: str, dest: str) -> None:
     """Extracts an archive to the supplied destination"""
     # TODO: add support for other archive types.
@@ -89,32 +83,25 @@ def delete_macos_files(path: str) -> None:
                 os.remove(os.path.join(root, file))
 
 
-def validate_path(path: str, TEMP: str):
-    """Validates the supplied path."""
-    if os.path.exists(path) is False:
-        raise Exception("Invalid path:", path)
-
-
 def move_to_temp(path: str, TEMP: str):
     """Moves the files supplied by path to the TEMP directory. Extracts archives if necessary."""
+    # TODO: bro what was i cooking.....
     if os.path.isdir(path):  # copy song if directory
         folder = os.path.basename(os.path.normpath(path))
         dest = os.path.join(TEMP, folder)
         shutil.copytree(path, dest)
     else:
-        os.mkdir(TEMP)
         # Attempt to extract archive
         try:
             extract_archive(path, TEMP)
         except Exception as e:
-            cleanup(TEMP)
             raise Exception("Error extracting archive: ", e)
 
 
-def prompt_overwrite(item: str, temp: str):
+def prompt_overwrite(item: str):
     """
     Prompts the user to overwrite the existing `item`.
-    Calls `cleanup(temp)` and exits if existing item is kept.
+    Exits if existing item is kept.
     """
     while True:
         print(f"Overwrite existing {item}? [Y/n] ", end="")
@@ -123,7 +110,6 @@ def prompt_overwrite(item: str, temp: str):
                 print(f"Overwriting exisiting {item}.")
                 break
             case "n":
-                cleanup(temp)
                 print(f"Keeping existing {item}.")
                 exit(1)
             case _:

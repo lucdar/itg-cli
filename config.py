@@ -21,11 +21,6 @@ settings = Dynaconf(
             default=os.path.join(PROJ_ROOT, ".censored"),
             condition=is_writable_dir,
         ),
-        Validator(
-            "TEMP",
-            default=os.path.join(PROJ_ROOT, ".temp"),
-            condition=is_writable_dir,
-        ),
         Validator("DELETE_MACOS_FILES", default=False, apply_default_on_none=True),
     ],
 )

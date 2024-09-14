@@ -3,21 +3,20 @@ import os
 import shutil
 import sys
 import simfile
+from tempfile import TemporaryDirectory
 from simfile.types import Simfile
 from .utils.download_file import download_file
 from .utils.add_utils import (
     get_charts_string,
-    cleanup,
-    validate_path,
     move_to_temp,
     find_simfile_dirs,
     delete_macos_files,
     print_simfile_data,
-    prompt_overwrite
+    prompt_overwrite,
 )
 from config import settings
 
-TEMP_ROOT = settings.temp
+TEMP = TemporaryDirectory()
 SINGLES = settings.singles
 CACHE = settings.cache
 
@@ -50,28 +49,21 @@ def print_simfile_choices(simfiles: list[Simfile], jsonOutput=False) -> None:
 
 
 def add_song(args):
-    # create random temp subdirectory directory name
-    TEMP_FOLDER = os.urandom(8).hex()
-    TEMP = os.path.join(TEMP_ROOT, TEMP_FOLDER)
-
-    # clear temp directory if not empty
-    cleanup(TEMP)
-
     # download file if URL
     if args.path.startswith("http"):
         path = download_file(args.path)
         # print("path to download:", path)
     else:
         path = os.path.abspath(args.path)
-
-    validate_path(path, TEMP)
+    
+    if os.path.exists(path) is False:
+        raise Exception("Invalid path:", path)
     move_to_temp(path, TEMP)
 
     # identify simfile
     print("Searching for valid simfiles...")
     sm_dirs = find_simfile_dirs(TEMP)
     if len(sm_dirs) == 0:
-        cleanup(TEMP)
         raise Exception("No valid simfiles found")
     elif len(sm_dirs) == 1:
         root = sm_dirs[0]
@@ -117,7 +109,7 @@ def add_song(args):
                 if file.endswith(".ssc") or file.endswith(".sm"):
                     zip_name = file.replace(".ssc", "").replace(".sm", "")
                     break
-        new_root = root.replace(TEMP_FOLDER, zip_name)
+        new_root = os.path.join(TemporaryDirectory(), zip_name)
         shutil.move(root, new_root)
         root = new_root
 
@@ -134,7 +126,7 @@ def add_song(args):
             print_simfile_data(sm_old, "Old Simfile")
             sm_new = simfile.opendir(root, strict=False)[0]
             print_simfile_data(sm_new, "New Simfile")
-            prompt_overwrite("simfile", TEMP)
+            prompt_overwrite("simfile")
 
         shutil.rmtree(dest)
         # Also delete cache entry if chache is supplied in config
@@ -162,4 +154,3 @@ def add_song(args):
         else:
             raise e
     print_simfile_data(sm, "Song added successfully")
-    cleanup(TEMP)

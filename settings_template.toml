@@ -27,11 +27,6 @@ downloads=""
 # Not required, Defaults to false.
 delete_macos_files=false
 
-# The absolute path to the 'temp' folder to store temporary files.
-# Should be cleared on every run, but if the program exits ungracefully it may not be.
-# If left commented, defaults to [itg-cli folder]/.temp 
-# temp=""
-
 # The absolute path to the 'censored' folder to store censored files.
 # If left commented, defaults to [itg-cli folder]/.censored
 # censored=""
