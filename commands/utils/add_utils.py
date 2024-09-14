@@ -1,7 +1,6 @@
 import os
 import shutil
 from simfile.types import Simfile, Chart
-from config import config_data
 
 
 def cleanup(path) -> None:
@@ -23,22 +22,25 @@ def find_simfile_dirs(path: str) -> list[str]:
         if "__MACOSX" in root:  # ignore macosx folders
             continue
         for file in files:
-            if file.startswith('.'):  # ignore hidden files
+            if file.startswith("."):  # ignore hidden files
                 continue
-            if file.endswith('.sm') or file.endswith('.ssc'):
+            if file.endswith(".sm") or file.endswith(".ssc"):
                 # File found in this directory, continue to next directory
                 dirs.add(root)
                 break
     return list(dirs)
 
 
-def print_simfile_data(sm: Simfile, label: str = 'data') -> None:
+def print_simfile_data(sm: Simfile, label: str = "data") -> None:
     """Prints simfile data"""
-    print(f"### {label} ###",
-          "  Title: " + sm.title,
-          " Artist: " + sm.artist,
-          " Meters: " + str(get_charts_string(sm)),
-          sep='\n', end='\n\n')
+    print(
+        f"### {label} ###",
+        "  Title: " + sm.title,
+        " Artist: " + sm.artist,
+        " Meters: " + str(get_charts_string(sm)),
+        sep="\n",
+        end="\n\n",
+    )
 
 
 def get_charts_as_ints(sm: Simfile, default: int = 0) -> list[int]:
@@ -68,9 +70,14 @@ def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     """
     charts = sm.charts
     if difficulty_labels:
-        fn = lambda c: f'{c.difficulty} {c.meter}'
+
+        def fn(c):
+            return f"{c.difficulty} {c.meter}"
     else:
-        fn = lambda c: c.meter
+
+        def fn(c):
+            return c.meter
+
     return str(list(map(fn, charts))).replace("'", "")
 
 
@@ -78,16 +85,14 @@ def delete_macos_files(path: str) -> None:
     """Deletes all `._` files in the supplied path"""
     for root, _, files in os.walk(path):
         for file in files:
-            if file.startswith('._'):
+            if file.startswith("._"):
                 os.remove(os.path.join(root, file))
 
 
 def validate_path(path: str, TEMP: str):
     """Validates the supplied path."""
-    if path is None:
-        raise Exception('No path supplied')
-    elif os.path.exists(path) is False:
-        raise Exception('Invalid path:', path)
+    if os.path.exists(path) is False:
+        raise Exception("Invalid path:", path)
 
 
 def move_to_temp(path: str, TEMP: str):
@@ -103,7 +108,7 @@ def move_to_temp(path: str, TEMP: str):
             extract_archive(path, TEMP)
         except Exception as e:
             cleanup(TEMP)
-            raise Exception('Error extracting archive: ', e)
+            raise Exception("Error extracting archive: ", e)
 
 
 def prompt_overwrite(item: str, temp: str):
@@ -112,14 +117,14 @@ def prompt_overwrite(item: str, temp: str):
     Calls `cleanup(temp)` and exits if existing item is kept.
     """
     while True:
-        print(f"Overwrite existing {item}? [Y/n] ", end='')
+        print(f"Overwrite existing {item}? [Y/n] ", end="")
         match input().lower():
-            case 'y' | '':
+            case "y" | "":
                 print(f"Overwriting exisiting {item}.")
                 break
-            case 'n':
+            case "n":
                 cleanup(temp)
                 print(f"Keeping existing {item}.")
                 exit(1)
             case _:
-                print('Invalid choice')
+                print("Invalid choice")

@@ -2,12 +2,20 @@ import os
 import shutil
 from simfile.dir import SimfilePack
 from .utils.download_file import download_file
-from .utils.add_utils import *
+from .utils.add_utils import (
+    cleanup,
+    validate_path,
+    move_to_temp,
+    find_simfile_dirs,
+    delete_macos_files,
+    get_charts_string,
+    prompt_overwrite,
+)
 from config import config_data
 
-TEMP_ROOT = config_data['temp_root']
-PACKS = config_data['packs']
-COURSES = config_data['courses']
+TEMP_ROOT = config_data["temp_root"]
+PACKS = config_data["packs"]
+COURSES = config_data["courses"]
 
 
 def add_pack(args):
@@ -18,7 +26,7 @@ def add_pack(args):
     cleanup(TEMP)
 
     # download file if URL
-    if args.path.startswith('http'):
+    if args.path.startswith("http"):
         path = download_file(args.path)
         # print("path to download:", path)
     else:
@@ -31,10 +39,10 @@ def add_pack(args):
     sm_dirs = find_simfile_dirs(TEMP)
     if len(sm_dirs) == 0:
         cleanup(TEMP)
-        raise Exception('No valid simfiles found')
+        raise Exception("No valid simfiles found")
     if len(sm_dirs) == 1:
         # TODO: Exit in this case
-        print('Warning: Only one valid simfile found. Did you mean to use add-song?')
+        print("Warning: Only one valid simfile found. Did you mean to use add-song?")
     pack_dirs = []
     for sm_dir in sm_dirs:
         sm_dir = os.path.dirname(sm_dir)
@@ -47,21 +55,21 @@ def add_pack(args):
     if len(pack_dirs) > 1:
         # TODO: Default to picking dir with most
         # Print warning that multiple valid pack directories were found
-        print('Prompt: Multiple valid pack directories found:')
+        print("Prompt: Multiple valid pack directories found:")
         pack_dirs = sorted(pack_dirs, key=len)
         for i, pack_dir in enumerate(pack_dirs, start=1):
             print(f"{i}. {pack_dir}")
         while True:
-            print('Please choose a pack directory to proceed with: ', end='')
+            print("Please choose a pack directory to proceed with: ", end="")
             choice = input()
             if choice.isdigit() and int(choice) in range(0, len(pack_dirs)):
-                print(f'Chosen dir: {pack_dirs[int(choice) - 1]}')
+                print(f"Chosen dir: {pack_dirs[int(choice) - 1]}")
                 pack_dirs = [pack_dirs[int(choice) - 1]]
                 break
             else:
-                print('Invalid choice. Please choose again.')
+                print("Invalid choice. Please choose again.")
 
-    if config_data['delete-macos-files']:  # delete macos files if enabled
+    if config_data["delete-macos-files"]:  # delete macos files if enabled
         delete_macos_files(pack_dirs[0])
 
     pack = SimfilePack(pack_dirs[0])
@@ -75,7 +83,7 @@ def add_pack(args):
     # check if pack already exists
     dest = os.path.join(PACKS, pack.name)
     if os.path.exists(dest):
-        if config_data['delete-macos-files']:  # delete macos files if enabled
+        if config_data["delete-macos-files"]:  # delete macos files if enabled
             delete_macos_files(dest)
         existing_pack = SimfilePack(dest)
         existing_songs = list(existing_pack.simfiles())
@@ -84,9 +92,9 @@ def add_pack(args):
             print(f"Prompt: Pack already exists with {diff} fewer songs.")
         elif diff < 0:
             print(f"Prompt: Pack already exists with {-diff} more songs.")
-        else: # difference == 0
-            print('Prompt: Pack already exists with the same number of songs.')
-        if 'overwrite' not in config_data:
+        else:  # difference == 0
+            print("Prompt: Pack already exists with the same number of songs.")
+        if "overwrite" not in config_data:
             prompt_overwrite("pack", TEMP)
         shutil.rmtree(dest)
 
@@ -95,13 +103,13 @@ def add_pack(args):
     crs_dirs = []
     for root, _, files in os.walk(TEMP):
         for file in files:
-            if file.endswith('.crs') and 'Courses' in root:
+            if file.endswith(".crs") and "Courses" in root:
                 crs_dirs.append(os.path.join(root, file))
     if len(crs_dirs) > 0:
         print(f"Found {len(crs_dirs)} courses:")
         for crs in crs_dirs:
             print(f"  {os.path.basename(crs)}")
-        if COURSES != '':
+        if COURSES != "":
             # copy all files in directories with .crs files to courses subfolder
             # course banners are not .crs files
             courses_subfolder = os.path.join(COURSES, pack.name)
@@ -120,6 +128,5 @@ def add_pack(args):
 
     # move pack to packs directory
     shutil.move(pack.pack_dir, os.path.join(PACKS, pack.name))
-    print(
-        f"Added pack {'and courses ' if added_courses else ''}successfully!")
+    print(f"Added pack {'and courses ' if added_courses else ''}successfully!")
     cleanup(TEMP)
