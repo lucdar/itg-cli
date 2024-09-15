@@ -1,28 +1,22 @@
 import os
 import shutil
+from pathlib import Path
+from itertools import chain
+from typing import Iterable
 from simfile.types import Simfile, Chart
 
 
-def extract_archive(path: str, dest: str) -> None:
-    """Extracts an archive to the supplied destination"""
-    # TODO: add support for other archive types.
-    shutil.unpack_archive(path, dest)
-
-
-def find_simfile_dirs(path: str) -> list[str]:
-    """Returns a list of valid simfile directories in the supplied path"""
-    dirs = set()
-    for root, _, files in os.walk(path):
-        if "__MACOSX" in root:  # ignore macosx folders
-            continue
-        for file in files:
-            if file.startswith("."):  # ignore hidden files
-                continue
-            if file.endswith(".sm") or file.endswith(".ssc"):
-                # File found in this directory, continue to next directory
-                dirs.add(root)
-                break
-    return list(dirs)
+def simfile_paths(path: Path) -> Iterable[Path]:
+    """
+    Returns an iterator of valid paths to .sm or .ssc files that start with 
+    `path`. Paths that contain __MACOSX folders or whose simfiles begin with
+    `.` are filtered.
+    """
+    def path_filter(p: Path):
+        return not ("__MACOSX" in p.parts or p.name.startswith("."))
+    sms = path.rglob("*.sm")
+    sscs = path.rglob("*.ssc")
+    return filter(path_filter, chain(sms, sscs))
 
 
 def print_simfile_data(sm: Simfile, label: str = "data") -> None:
@@ -83,19 +77,18 @@ def delete_macos_files(path: str) -> None:
                 os.remove(os.path.join(root, file))
 
 
-def move_to_temp(path: str, working_dir: str):
-    """Moves the files supplied by path to the working_dir directory. Extracts archives if necessary."""
-    # TODO: bro what was i cooking.....
-    if os.path.isdir(path):  # copy song if directory
-        folder = os.path.basename(os.path.normpath(path))
-        dest = os.path.join(working_dir, folder)
-        shutil.copytree(path, dest)
-    else:
-        # Attempt to extract archive
-        try:
-            extract_archive(path, working_dir)
-        except Exception as e:
-            raise Exception("Error extracting archive: ", e)
+def extract(archive_path: Path) -> Path:
+    """
+    Extracts an archive to a containing folder in the same directory.
+    Returns the path to the containing folder.
+    
+    Uses shutil.unpack_archive, and thus only supports the following formats:
+    `zip, tar, gztar, bztar, xztar`
+    """
+    dest = archive_path.with_suffix("")
+    dest.mkdir()
+    shutil.unpack_archive(archive_path, dest)
+    return dest
 
 
 def prompt_overwrite(item: str) -> bool:
