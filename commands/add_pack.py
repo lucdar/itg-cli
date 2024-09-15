@@ -1,71 +1,55 @@
-import os
 import shutil
+from collections import Counter
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from simfile.dir import SimfilePack
 from .utils.download_file import download_file
 from .utils.add_utils import (
-    move_to_temp,
-    find_simfile_dirs,
+    extract,
+    simfile_paths,
     delete_macos_files,
     get_charts_string,
     prompt_overwrite,
 )
-from config import settings
-
-PACKS = settings.packs
-COURSES = settings.courses
 
 
-def add_pack(args):
-    with TemporaryDirectory() as working_dir:
-        # download file if URL
+def add_pack(args, settings):
+    with Path(TemporaryDirectory()) as working_dir:
         if args.path.startswith("http"):
             path = download_file(args.path)
-            # print("path to download:", path)
         else:
-            path = os.path.abspath(args.path)
-        
-        if os.path.exists(path) is False:
+            path = Path(args.path).absolute()
+
+        if not path.exists():
             raise Exception("Invalid path:", path)
-        move_to_temp(path, working_dir)
+        if not path.is_dir():
+            path = extract(path)
 
-        # identify simfile paths
-        sm_dirs = find_simfile_dirs(working_dir)
-        if len(sm_dirs) == 0:
-            raise Exception("No valid simfiles found")
-        if len(sm_dirs) == 1:
-            # TODO: Exit in this case
-            print("Warning: Only one valid simfile found. Did you mean to use add-song?")
-        pack_dirs = []
-        for sm_dir in sm_dirs:
-            sm_dir = os.path.dirname(sm_dir)
-            pack_dirs.append(sm_dir)
+        # Move files to temporary working directory
+        working_path = working_dir.joinpath(path.name)
+        path.replace(working_path)
 
-        # check for multiple valid pack directories
-        # this usually won't happen, but sometimes "secret" simfiles can cause this
-        # or i guess multiple packs bundled together?
-        pack_dirs = list(set(pack_dirs))
-        if len(pack_dirs) > 1:
-            # TODO: Default to picking dir with most
-            # Print warning that multiple valid pack directories were found
-            print("Prompt: Multiple valid pack directories found:")
-            pack_dirs = sorted(pack_dirs, key=len)
-            for i, pack_dir in enumerate(pack_dirs, start=1):
-                print(f"{i}. {pack_dir}")
-            while True:
-                print("Please choose a pack directory to proceed with: ", end="")
-                choice = input()
-                if choice.isdigit() and int(choice) in range(0, len(pack_dirs)):
-                    print(f"Chosen dir: {pack_dirs[int(choice) - 1]}")
-                    pack_dirs = [pack_dirs[int(choice) - 1]]
-                    break
-                else:
-                    print("Invalid choice. Please choose again.")
+        # 2nd parent of a simfile path is a valid pack directory
+        # pack_dir_counts stores the # of simfiles in each pack
+        pack_dir_counts = Counter(
+            map(lambda p: p.parents[1], simfile_paths(working_path))
+        )
+        if len(pack_dir_counts) > 1:
+            print("Warning | Multiple pack directories found:")
+            packs_by_frequency = pack_dir_counts.most_common()
+            for pack, count in packs_by_frequency:
+                print(f"{pack.relative_to(working_path)} ({count} songs)")
+            pack_path = packs_by_frequency[0][0]
+            print(
+                f"Selecting pack with the most songs: {pack_path.relative_to(working_path)}"
+            )
+        else:
+            pack_path, _ = pack_dir_counts.popitem()
 
         if settings.delete_macos_files:  # delete macos files if enabled
-            delete_macos_files(pack_dirs[0])
+            delete_macos_files(pack_path)
 
-        pack = SimfilePack(pack_dirs[0])
+        pack = SimfilePack(pack_path)
         songs = list(pack.simfiles())
 
         # print pack metadata
@@ -74,8 +58,8 @@ def add_pack(args):
             print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
 
         # check if pack already exists
-        dest = os.path.join(PACKS, pack.name)
-        if os.path.exists(dest):
+        dest = Path(settings.packs).joinpath(pack_path.name)
+        if dest.exists():
             if settings.delete_macos_files:  # delete macos files if enabled
                 delete_macos_files(dest)
             existing_pack = SimfilePack(dest)
@@ -92,33 +76,20 @@ def add_pack(args):
             shutil.rmtree(dest)
 
         # look for a Courses folder countaining .crs files
-        added_courses = False
-        crs_dirs = []
-        for root, _, files in os.walk(working_dir):
-            for file in files:
-                if file.endswith(".crs") and "Courses" in root:
-                    crs_dirs.append(os.path.join(root, file))
-        if len(crs_dirs) > 0:
-            print(f"Found {len(crs_dirs)} courses:")
-            for crs in crs_dirs:
-                print(f"  {os.path.basename(crs)}")
-            if COURSES != "":
-                # copy all files in directories with .crs files to courses subfolder
-                # course banners are not .crs files
-                courses_subfolder = os.path.join(COURSES, pack.name)
-                if os.path.exists(courses_subfolder):
-                    shutil.rmtree(courses_subfolder)
-                os.mkdir(courses_subfolder)
-                # containing folders for courses
-                courses_dirs = [os.path.dirname(crs) for crs in crs_dirs]
-                courses_dirs_set = set(courses_dirs)
-                for courses_dir in courses_dirs_set:
-                    for file in os.listdir(courses_dir):
-                        file_dir = os.path.join(courses_dir, file)
-                        if os.path.isfile(file_dir):
-                            shutil.copy(file_dir, courses_subfolder)
-                added_courses = True
-
+        num_courses = 0
+        courses_subfolder = Path(settings.courses).joinpath(pack.name)
+        courses_subfolder.mkdir(exist_ok=True)
+        crs_parent_dirs = set(map(lambda p: p.parent, working_path.rglob("*.crs")))
+        for crs_parent_dir in crs_parent_dirs:
+            for file in filter(Path.is_file, crs_parent_dir.iterdir()):
+                file.replace(courses_subfolder.joinath(file.name))
+                if file.suffix == ".crs":
+                    num_courses += 1
         # move pack to packs directory
-        shutil.move(pack.pack_dir, os.path.join(PACKS, pack.name))
-    print(f"Added pack {'and courses ' if added_courses else ''}successfully!")
+        pack_path.rename(dest)
+
+    # Print success message
+    if num_courses == 1:
+        print(f"Added {pack.name} with {len(songs)} songs and 1 course.")
+    else:
+        print(f"Added {pack.name} with {len(songs)} songs and {num_courses} courses.")
