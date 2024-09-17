@@ -26,8 +26,8 @@ def download_file(url: str, downloads: Path) -> Path:
         validate_response(response)
         filename = get_download_filename(response)
         dest = downloads.joinpath(filename)
-        if dest.exists():
-            os.remove(dest)
+        # Delete dest if it exists
+        dest.unlink(missing_ok=True)
         download_with_progress(response, filename, dest)
         return dest
 
@@ -38,7 +38,7 @@ def validate_response(r: requests.Response) -> None:
     Raises an exception if the status code is not 200, if the request does not have
     a content header, or if the Content-Type is not in valid_content_types
     """
-    # TODO: add support for more filetypes (need to change get_download_filename)
+    # TODO: add support for more filetypes (remember to update get_download_filename)
     valid_content_types = ["application/zip"]
     if r.status_code != 200:  # 200: OK
         raise Exception(f"Unsuccessful request to {r.url} with status {r.status_code}")
@@ -48,7 +48,7 @@ def validate_response(r: requests.Response) -> None:
         raise Exception("Invalid Content-Type:", r.headers["Content-Type"])
 
 
-def get_download_filename(r: requests.Response) -> Path:
+def get_download_filename(r: requests.Response) -> str:
     """
     Returns the filename from the response's Content-Disposition header, the url's
     basename, or defaults to "download.zip"
@@ -57,15 +57,14 @@ def get_download_filename(r: requests.Response) -> Path:
         return Path(pyrfc6266.parse_filename(r.headers["Content-Disposition"]))
     name = os.path.basename(r.url)
     if name != "":
-        return Path(name).with_suffix(".zip")
+        return name + ".zip"
     else:
-        return Path("download.zip")
+        return "download.zip"
 
 
 def download_with_progress(r: requests.Response, dest: Path) -> None:
     """
-    Writes the content from a request r to dest
-    Displays a progress bar in stdout.
+    Writes the content from a request `r` to `dest` and writes a progress bar to stderr
     """
     chunk_size = 128
     total_size = r.headers.get("content-length", None)
