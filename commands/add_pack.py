@@ -1,8 +1,8 @@
 import shutil
 from collections import Counter
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from simfile.dir import SimfilePack
+from tempfile import TemporaryDirectory
 from .utils.download_file import download_file
 from .utils.add_utils import (
     extract,
@@ -14,9 +14,9 @@ from .utils.add_utils import (
 
 
 def add_pack(args, settings):
-    with Path(TemporaryDirectory()) as working_dir:
+    with Path(TemporaryDirectory()) as temp_directory:
         if args.path.startswith("http"):
-            path = download_file(args.path)
+            path = download_file(args.path, settings.downloads)
         else:
             path = Path(args.path).absolute()
 
@@ -26,7 +26,7 @@ def add_pack(args, settings):
             path = extract(path)
 
         # Move files to temporary working directory
-        working_path = working_dir.joinpath(path.name)
+        working_path = temp_directory.joinpath(path.name)
         path.replace(working_path)
 
         # 2nd parent of a simfile path is a valid pack directory
@@ -46,11 +46,10 @@ def add_pack(args, settings):
         else:
             pack_path, _ = pack_dir_counts.popitem()
 
-        if settings.delete_macos_files:  # delete macos files if enabled
+        if settings.delete_macos_files:
             delete_macos_files(pack_path)
-
         pack = SimfilePack(pack_path)
-        songs = list(pack.simfiles())
+        songs = list(pack.simfiles(strict=False))
 
         # print pack metadata
         print(f"{pack.name} contains {len(songs)} songs:")
@@ -60,19 +59,20 @@ def add_pack(args, settings):
         # check if pack already exists
         dest = Path(settings.packs).joinpath(pack_path.name)
         if dest.exists():
-            if settings.delete_macos_files:  # delete macos files if enabled
-                delete_macos_files(dest)
-            existing_pack = SimfilePack(dest)
-            existing_songs = list(existing_pack.simfiles())
-            diff = len(songs) - len(existing_songs)
-            if diff > 0:
-                print(f"Prompt: Pack already exists with {diff} fewer songs.")
-            elif diff < 0:
-                print(f"Prompt: Pack already exists with {-diff} more songs.")
-            else:  # difference == 0
-                print("Prompt: Pack already exists with the same number of songs.")
-            if not (args.overwrite or prompt_overwrite("pack")):
-                exit(1)
+            if not args.overwrite:
+                if settings.delete_macos_files:
+                    delete_macos_files(dest)
+                existing_pack = SimfilePack(dest)
+                existing_songs = list(existing_pack.simfiles())
+                diff = len(songs) - len(existing_songs)
+                if diff > 0:
+                    print(f"Prompt: Pack already exists with {diff} fewer songs.")
+                elif diff < 0:
+                    print(f"Prompt: Pack already exists with {-diff} more songs.")
+                else:  # difference == 0
+                    print("Prompt: Pack already exists with the same number of songs.")
+                if not prompt_overwrite("pack"):
+                    exit(1)
             shutil.rmtree(dest)
 
         # look for a Courses folder countaining .crs files
