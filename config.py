@@ -2,12 +2,15 @@ from dynaconf import Dynaconf, Validator
 from pathlib import Path
 import os
 
-proj_root = Path(__file__).parent()  # /path/to/itg-cli/
+proj_root = Path(__file__).parent  # /path/to/itg-cli/
 config_path = proj_root.joinpath("settings.toml")
+
 
 def is_writable_dir(s: str) -> bool:
     return Path(s).is_dir and os.access(s, os.W_OK)
 
+
+# TODO: define config type with Path fields
 settings = Dynaconf(
     envvar_prefix="ITG_CLI",  # export envvars with `export ITG_CLI_FOO=bar`.
     settings_files=["settings_template.toml", "settings.toml"],

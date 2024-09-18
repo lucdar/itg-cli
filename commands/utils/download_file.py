@@ -2,7 +2,7 @@ import requests
 import gdown
 import os
 import pyrfc6266
-import tqdm
+from tqdm import tqdm
 from pathlib import Path
 
 
@@ -14,6 +14,7 @@ def download_file(url: str, downloads: Path) -> Path:
     """
     # TODO: handle mega.nz links
     if "drive.google.com" in url or "drive.usercontent.google.com" in url:
+        print("Making request to Google Drive...")
         download_path = gdown.download(
             url,
             quiet=False,
@@ -22,13 +23,14 @@ def download_file(url: str, downloads: Path) -> Path:
         )
         return Path(download_path)
     else:  # try using requests
-        response = requests.get(url, allow_redirects=True)
+        print(f"Making request to {url}...")
+        response = requests.get(url, allow_redirects=True, stream=True)
         validate_response(response)
         filename = get_download_filename(response)
         dest = downloads.joinpath(filename)
         # Delete dest if it exists
         dest.unlink(missing_ok=True)
-        download_with_progress(response, filename, dest)
+        download_with_progress(response, dest)
         return dest
 
 
@@ -56,23 +58,22 @@ def get_download_filename(r: requests.Response) -> str:
     if "Content-Disposition" in r.headers:
         return Path(pyrfc6266.parse_filename(r.headers["Content-Disposition"]))
     name = os.path.basename(r.url)
-    if name != "":
-        return name + ".zip"
+    if name.endswith(".zip"):
+        return name
     else:
         return "download.zip"
 
 
 def download_with_progress(r: requests.Response, dest: Path) -> None:
     """
-    Writes the content from a request `r` to `dest` and writes a progress bar to stderr
+    Writes the content from a streamed request `r` to `dest` and writes a progress bar to stderr
     """
-    chunk_size = 128
-    total_size = r.headers.get("content-length", None)
-    if total_size is not None:
-        total_size = int(total_size)
-    pbar = tqdm.tqdm(total=total_size, unit="B", unit_scale=True, desc=dest.name)
+    # https://stackoverflow.com/a/37573701/22049792
+    chunk_size = 1024
+    total_size = int(r.headers.get("content-length", 0))
+    pbar = tqdm(total=total_size, unit="B", unit_scale=True, desc=dest.name)
     with open(dest, "wb") as file:
-        for chunk in r.iter_content(chunk_size=chunk_size):
-            file.write(chunk)
+        for chunk in r.iter_content(chunk_size):
             pbar.update(len(chunk))
+            file.write(chunk)
     pbar.close()
