@@ -42,7 +42,7 @@ def add_song(args, settings):
                 new = simfile.opendir(simfile_root, strict=False)[0]
                 print_simfile_data(old, "Old Simfile")
                 print_simfile_data(new, "New Simfile")
-                if prompt_overwrite("simfile"):
+                if not prompt_overwrite("simfile"):
                     exit(1)
             shutil.rmtree(dest)
             if settings.cache:  # Delete cache entry if it exists
