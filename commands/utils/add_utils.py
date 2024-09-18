@@ -4,16 +4,19 @@ from pathlib import Path
 from itertools import chain
 from typing import Iterable
 from simfile.types import Simfile, Chart
+from .download_file import download_file
 
 
 def simfile_paths(path: Path) -> Iterable[Path]:
     """
-    Returns an iterator of valid paths to .sm or .ssc files that start with 
+    Returns an iterator of valid paths to .sm or .ssc files that start with
     `path`. Paths that contain __MACOSX folders or whose simfiles begin with
     `.` are filtered.
     """
+
     def path_filter(p: Path):
         return not ("__MACOSX" in p.parts or p.name.startswith("."))
+
     sms = path.rglob("*.sm")
     sscs = path.rglob("*.ssc")
     return filter(path_filter, chain(sms, sscs))
@@ -81,12 +84,13 @@ def extract(archive_path: Path) -> Path:
     """
     Extracts an archive to a containing folder in the same directory.
     Returns the path to the containing folder.
-    
+
     Uses shutil.unpack_archive, and thus only supports the following formats:
     `zip, tar, gztar, bztar, xztar`
     """
     dest = archive_path.with_suffix("")
     dest.mkdir()
+    print("Extracting archive...")
     shutil.unpack_archive(archive_path, dest)
     return dest
 
@@ -107,3 +111,18 @@ def prompt_overwrite(item: str) -> bool:
                 return False
             case _:
                 print("Invalid choice")
+
+
+def setup_working_dir(path_str: str, downloads: Path, temp: Path) -> Path:
+    if path_str.startswith("http"):
+        path = download_file(path_str, downloads)
+    else:
+        path = Path(path_str).absolute()
+    if not path.exists():
+        raise Exception("Path does not exist:", str(path))
+    if not path.is_dir():
+        path = extract(path)
+    working_path = temp.joinpath(path.name)
+    # TODO: Maybe needs some logic for moving vs. copying?
+    path.replace(working_path)
+    return working_path

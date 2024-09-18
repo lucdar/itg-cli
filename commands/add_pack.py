@@ -3,9 +3,8 @@ from collections import Counter
 from pathlib import Path
 from simfile.dir import SimfilePack
 from tempfile import TemporaryDirectory
-from .utils.download_file import download_file
 from .utils.add_utils import (
-    extract,
+    setup_working_dir,
     simfile_paths,
     delete_macos_files,
     get_charts_string,
@@ -14,34 +13,26 @@ from .utils.add_utils import (
 
 
 def add_pack(args, settings):
-    with Path(TemporaryDirectory()) as temp_directory:
-        if args.path.startswith("http"):
-            path = download_file(args.path, settings.downloads)
-        else:
-            path = Path(args.path).absolute()
-
-        if not path.exists():
-            raise Exception("Invalid path:", path)
-        if not path.is_dir():
-            path = extract(path)
-
-        # Move files to temporary working directory
-        working_path = temp_directory.joinpath(path.name)
-        path.replace(working_path)
+    with TemporaryDirectory() as temp_directory:
+        working_dir = setup_working_dir(
+            args.path, Path(settings.downloads), Path(temp_directory)
+        )
 
         # 2nd parent of a simfile path is a valid pack directory
         # pack_dir_counts stores the # of simfiles in each pack
         pack_dir_counts = Counter(
-            map(lambda p: p.parents[1], simfile_paths(working_path))
+            map(lambda p: p.parents[1], simfile_paths(working_dir))
         )
-        if len(pack_dir_counts) > 1:
+        if len(pack_dir_counts) == 0:
+            raise Exception("No packs found.")
+        elif len(pack_dir_counts) > 1:
             print("Warning | Multiple pack directories found:")
             packs_by_frequency = pack_dir_counts.most_common()
             for pack, count in packs_by_frequency:
-                print(f"{pack.relative_to(working_path)} ({count} songs)")
+                print(f"{pack.relative_to(working_dir)} ({count} songs)")
             pack_path = packs_by_frequency[0][0]
             print(
-                f"Selecting pack with the most songs: {pack_path.relative_to(working_path)}"
+                f"Selecting pack with the most songs: {pack_path.relative_to(working_dir)}"
             )
         else:
             pack_path, _ = pack_dir_counts.popitem()
@@ -79,10 +70,10 @@ def add_pack(args, settings):
         num_courses = 0
         courses_subfolder = Path(settings.courses).joinpath(pack.name)
         courses_subfolder.mkdir(exist_ok=True)
-        crs_parent_dirs = set(map(lambda p: p.parent, working_path.rglob("*.crs")))
+        crs_parent_dirs = set(map(lambda p: p.parent, working_dir.rglob("*.crs")))
         for crs_parent_dir in crs_parent_dirs:
             for file in filter(Path.is_file, crs_parent_dir.iterdir()):
-                file.replace(courses_subfolder.joinath(file.name))
+                file.replace(courses_subfolder.joinpath(file.name))
                 if file.suffix == ".crs":
                     num_courses += 1
         # move pack to packs directory
