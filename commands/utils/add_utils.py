@@ -59,16 +59,14 @@ def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
         get_charts_string(sm) -> "[5, 7, 10, 12]"
         get_charts_string(sm, difficulty_labels=True) -> "[Easy 5, Medium 7, Hard 10, Challenge 12]"
     """
-    charts = sm.charts
-    if difficulty_labels:
 
-        def fn(c):
+    def fn(c: Chart):
+        if difficulty_labels:
             return f"{c.difficulty} {c.meter}"
-    else:
-
-        def fn(c):
+        else:
             return c.meter
 
+    charts = sm.charts
     return str(list(map(fn, charts))).replace("'", "")
 
 
