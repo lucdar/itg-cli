@@ -112,15 +112,25 @@ def prompt_overwrite(item: str) -> bool:
 
 
 def setup_working_dir(path_str: str, downloads: Path, temp: Path) -> Path:
+    """
+    Takes the supplied parameter for an add command and does any necessary
+    extraction/downloading. Moves the directory to temp if it was downloaded
+    or extracted; copies if supplied as a path to a local directory instead.
+    """
+    downloaded, extracted = False, False
     if path_str.startswith("http"):
         path = download_file(path_str, downloads)
+        downloaded = True
     else:
         path = Path(path_str).absolute()
     if not path.exists():
         raise Exception("Path does not exist:", str(path))
     if not path.is_dir():
         path = extract(path)
+        extracted = True
     working_path = temp.joinpath(path.name)
-    # TODO: Maybe needs some logic for moving vs. copying?
-    path.replace(working_path)
+    if downloaded or extracted:
+        shutil.move(path, working_path)
+    else:
+        shutil.copy(path, working_path)
     return working_path
