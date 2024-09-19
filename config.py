@@ -23,7 +23,20 @@ class CLISettings:
         self.downloads = Path(settings["downloads"])
         self.censored = Path(settings.get("censored", proj_root.joinpath(".censored")))
         self.delete_macos_files = settings.get("delete_macos_files", False)
+        self.__create_missing_dirs()
         self.__validate()
+
+    def __create_missing_dirs(self):
+        creatable_dir_fields = [
+            (self.downloads, "downloads"),
+            (self.censored, "censored"),
+        ]
+        for d in creatable_dir_fields:
+            if not d.exists():
+                try:
+                    d.mkdir()
+                except Exception as e:
+                    print(f"Failed to create missing directory {d}:", e)
 
     def __validate(self):
         dir_fields = [
