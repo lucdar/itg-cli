@@ -3,6 +3,7 @@ from collections import Counter
 from pathlib import Path
 from simfile.dir import SimfilePack
 from tempfile import TemporaryDirectory
+from ..config import CLISettings
 from .utils.add_utils import (
     setup_working_dir,
     simfile_paths,
@@ -12,10 +13,10 @@ from .utils.add_utils import (
 )
 
 
-def add_pack(args, settings):
+def add_pack(args, settings: CLISettings):
     with TemporaryDirectory() as temp_directory:
         working_dir = setup_working_dir(
-            args.path, Path(settings.downloads), Path(temp_directory)
+            args.path, settings.downloads, Path(temp_directory)
         )
 
         # 2nd parent of a simfile path is a valid pack directory
@@ -48,7 +49,7 @@ def add_pack(args, settings):
             print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
 
         # check if pack already exists
-        dest = Path(settings.packs).joinpath(pack_path.name)
+        dest = settings.packs.joinpath(pack_path.name)
         if dest.exists():
             if not args.overwrite:
                 if settings.delete_macos_files:
@@ -68,7 +69,7 @@ def add_pack(args, settings):
 
         # look for a Courses folder countaining .crs files
         num_courses = 0
-        courses_subfolder = Path(settings.courses).joinpath(pack.name)
+        courses_subfolder = settings.courses.joinpath(pack.name)
         courses_subfolder.mkdir(exist_ok=True)
         crs_parent_dirs = set(map(lambda p: p.parent, working_dir.rglob("*.crs")))
         for crs_parent_dir in crs_parent_dirs:

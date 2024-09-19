@@ -1,6 +1,7 @@
 import shutil
 import simfile
 from pathlib import Path
+from ..config import CLISettings
 from tempfile import TemporaryDirectory
 from .utils.add_utils import (
     setup_working_dir,
@@ -11,10 +12,10 @@ from .utils.add_utils import (
 )
 
 
-def add_song(args, settings):
+def add_song(args, settings: CLISettings):
     with TemporaryDirectory() as temp_directory:
         working_dir = setup_working_dir(
-            args.path, Path(settings.downloads), Path(temp_directory)
+            args.path, settings.downloads, Path(temp_directory)
         )
         simfile_dirs = set(map(lambda p: p.parent, simfile_paths(working_dir)))
 
@@ -29,7 +30,7 @@ def add_song(args, settings):
                 "More than one simfile in supplied link/directory"
             ).add_note("Supply songs individually or use add-pack instead.")
 
-        dest = Path(settings.singles).joinpath(simfile_root.name)
+        dest = settings.singles.joinpath(simfile_root.name)
 
         # Overwrite if needed
         if dest.exists():
@@ -45,15 +46,11 @@ def add_song(args, settings):
                 if not prompt_overwrite("simfile"):
                     exit(1)
             shutil.rmtree(dest)
-            if settings.cache:  # Delete cache entry if it exists
-                cache_entry_name = (
-                    f"Songs_{simfile_root.name}_{Path(settings.singles).name}"
-                )
-                Path(settings.cache).joinpath("Songs", cache_entry_name).unlink(
-                    missing_ok=True
-                )
+            # Delete cache entry if it exists
+            cache_entry_name = f"Songs_{simfile_root.name}_{settings.singles.name}"
+            settings.cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
         simfile_root.rename(dest)
     if settings.delete_macos_files:
         delete_macos_files(simfile_root)
     sm = simfile.opendir(dest, strict=False)[0]
-    print(f"Added {sm.title} to {Path(settings.singles).name}.")
+    print(f"Added {sm.title} to {settings.singles.name}.")
