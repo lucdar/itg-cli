@@ -161,4 +161,5 @@ cython_debug/
 
 # ITG-CLI stuff
 .temp/
+.censored/
 settings.toml
