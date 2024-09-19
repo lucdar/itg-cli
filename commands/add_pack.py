@@ -1,9 +1,9 @@
 import shutil
 from collections import Counter
+from config import CLISettings
 from pathlib import Path
 from simfile.dir import SimfilePack
 from tempfile import TemporaryDirectory
-from ..config import CLISettings
 from .utils.add_utils import (
     setup_working_dir,
     simfile_paths,

@@ -1,7 +1,7 @@
 import shutil
 import simfile
+from config import CLISettings
 from pathlib import Path
-from ..config import CLISettings
 from tempfile import TemporaryDirectory
 from .utils.add_utils import (
     setup_working_dir,
@@ -47,7 +47,7 @@ def add_song(args, settings: CLISettings):
                     exit(1)
             shutil.rmtree(dest)
             # Delete cache entry if it exists
-            cache_entry_name = f"Songs_{simfile_root.name}_{settings.singles.name}"
+            cache_entry_name = f"Songs_{settings.singles.name}_{simfile_root.name}"
             settings.cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
         simfile_root.rename(dest)
     if settings.delete_macos_files:

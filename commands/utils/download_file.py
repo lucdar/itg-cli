@@ -1,9 +1,9 @@
-import requests
 import gdown
 import os
 import pyrfc6266
-from tqdm import tqdm
+import requests
 from pathlib import Path
+from tqdm import tqdm
 
 
 def download_file(url: str, downloads: Path) -> Path:
