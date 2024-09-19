@@ -47,7 +47,7 @@ def get_charts_as_ints(sm: Simfile, default: int = 0) -> list[int]:
         else:
             return default
 
-    return list(map(getMeter, charts))
+    return [getMeter(chart) for chart in charts]
 
 
 def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
@@ -66,8 +66,7 @@ def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
         else:
             return c.meter
 
-    charts = sm.charts
-    return str(list(map(fn, charts))).replace("'", "")
+    return str([fn(c) for c in sm.charts]).replace("'", "")
 
 
 def delete_macos_files(path: str) -> None:
