@@ -131,5 +131,5 @@ def setup_working_dir(path_str: str, downloads: Path, temp: Path) -> Path:
     if downloaded or extracted:
         shutil.move(path, working_path)
     else:
-        shutil.copy(path, working_path)
+        shutil.copytree(path, working_path)
     return working_path

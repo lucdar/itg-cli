@@ -31,7 +31,7 @@ class CLISettings:
             (self.downloads, "downloads"),
             (self.censored, "censored"),
         ]
-        for d in creatable_dir_fields:
+        for d, _ in creatable_dir_fields:
             if not d.exists():
                 try:
                     d.mkdir()
