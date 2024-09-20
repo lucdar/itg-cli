@@ -5,7 +5,7 @@ from config import CLISettings
 from pathlib import Path
 from simfile.dir import SimfilePack
 from tempfile import TemporaryDirectory
-from .utils.add_utils import (
+from utils import (
     delete_macos_files,
     get_charts_string,
     print_simfile_data,
