@@ -1,7 +1,5 @@
 import argparse
-from commands.add_song import add_song
-from commands.add_pack import add_pack
-from commands.censor import censor, uncensor
+from commands import add_pack, add_song, censor, uncensor
 from config import settings
 
 subparser_dict = {
