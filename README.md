@@ -58,18 +58,25 @@ Depending on your OS/environment you may need to use `python3` in place of `pyth
 * `censor` moves a specified song within your `packs` directory to the configured `censored` directory, removing them from play. (defaults to itg-cli/.censored if unset)
 
     ```Bash
-    itg-cli censor "path/to/7gays1pack/Stupid Hoe/"
+    python main.py censor "path/to/7gays1pack/Stupid Hoe/"
     ```
 
 * `uncensor` displays a list of songs that have been censored and prompts you to select a file to uncensor.
 
     ```Bash
-    $ itg-cli uncensor
+    $ python main.py uncensor
     1. Monke Rave (Tech Heavy Charts)
     2. Stupid Hoe (7gays1pack)
     3. ME!ME!ME! (Anime Extravaganza 4)
     Select a song to uncensor (1-3): 1
     Uncensored Monke Rave from Tech Heavy Charts.
+    ```
+
+* `ping` prints "pong" and exits
+
+    ```Bash
+    $ python main.py ping
+    pong
     ```
 
 ## Contributing
