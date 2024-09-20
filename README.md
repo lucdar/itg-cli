@@ -51,8 +51,8 @@ Depending on your OS/environment you may need to use `python3` in place of `pyth
     python main.py add-song path/to/song.zip
     # Or local directories:
     python main.py add-song path/to/song/
-    # Supports links to .zip 
-    python main.py add-song 
+    # Supports links to .zip files
+    python main.py add-song "https://cdn.discordapp.com/attachments/529867916833718294/1286510412262805524/Love_Bomb.zip?ex=66ee2bb0&is=66ecda30&hm=6c6ac229657a01b0f48995ed236a22889502c5407478cfe6151596f4355ca7b4&"
     ```
 
 * `censor` moves a specified song within your `packs` directory to the configured `censored` directory, removing them from play. (defaults to itg-cli/.censored if unset)
