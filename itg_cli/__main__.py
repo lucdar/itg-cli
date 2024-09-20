@@ -1,6 +1,6 @@
 import argparse
-from commands import add_pack, add_song, censor, uncensor
-from config import settings
+from itg_cli import add_pack, add_song, censor, uncensor
+from ._config import settings
 
 subparser_dict = {
     # "subcommand": (

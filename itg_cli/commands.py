@@ -1,11 +1,11 @@
 import shutil
 import simfile
 from collections import Counter
-from config import CLISettings
 from pathlib import Path
 from simfile.dir import SimfilePack
 from tempfile import TemporaryDirectory
-from utils import (
+from ._config import CLISettings
+from ._utils import (
     delete_macos_files,
     get_charts_string,
     print_simfile_data,
