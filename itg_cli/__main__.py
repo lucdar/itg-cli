@@ -1,5 +1,6 @@
 import argparse
 from itg_cli import add_pack, add_song, censor, uncensor
+from pathlib import Path
 from ._config import settings
 
 subparser_dict = {
@@ -59,11 +60,11 @@ def main():
 
     match args.command:
         case "add-pack":
-            add_pack(args, settings)
+            add_pack(Path(args.path), settings, overwrite=args.overwrite)
         case "add-song":
-            add_song(args, settings)
+            add_song(Path(args.path), settings, overwrite=args.overwrite)
         case "censor":
-            censor(args, settings)
+            censor(Path(args.path), settings)
         case "uncensor":
             uncensor(settings)
         case "ping":

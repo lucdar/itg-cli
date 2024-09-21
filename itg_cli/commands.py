@@ -15,10 +15,23 @@ from ._utils import (
 )
 
 
-def add_pack(args, settings: CLISettings):
+def add_pack(path_or_url: str, settings: CLISettings, overwrite: bool = False) -> None:
+    """
+    Takes a path to a local directory or a path/url to an archive and adds the
+    contained pack to `settings.packs`. Supplied local files are not moved.
+
+    In the case of multiple valid pack directories (multiple folders containing
+    .sm files with different direct parents), a warning will be printed, and the
+    pack containing the most songs will be added.
+
+    If there is already an existing pack in `settings.packs` with the same name,
+    the user will be prompted to overwrite or keep the existing file. If the
+    `overwrite` kwarg is set to true, this check is skipped and the pack is
+    overwritten without this check.
+    """
     with TemporaryDirectory() as temp_directory:
         working_dir = setup_working_dir(
-            args.path, settings.downloads, Path(temp_directory)
+            path_or_url, settings.downloads, Path(temp_directory)
         )
 
         # 2nd parent of a simfile path is a valid pack directory
@@ -53,7 +66,7 @@ def add_pack(args, settings: CLISettings):
         # check if pack already exists
         dest = settings.packs.joinpath(pack_path.name)
         if dest.exists():
-            if not args.overwrite:
+            if not overwrite:
                 if settings.delete_macos_files:
                     delete_macos_files(dest)
                 existing_pack = SimfilePack(dest)
@@ -89,10 +102,22 @@ def add_pack(args, settings: CLISettings):
         print(f"Added {pack.name} with {len(songs)} songs and {num_courses} courses.")
 
 
-def add_song(args, settings: CLISettings):
+def add_song(path_or_url: str, settings: CLISettings, overwrite: bool = False):
+    """
+    Takes a path to a local directory or a path/url to an archive and adds the
+    contained song to `settings.singles`. Supplied local files are not moved.
+
+    In the case of multiple valid songs (multiple folders containing
+    .sm files), an exception will be raised.
+
+    If there is already an existing song in `settings.singles` with the same
+    folder name, the user will be prompted to overwrite or keep the existing
+    file. If the `overwrite` kwarg is set to true, this check is skipped and
+    the song is overwritten without this check.
+    """
     with TemporaryDirectory() as temp_directory:
         working_dir = setup_working_dir(
-            args.path, settings.downloads, Path(temp_directory)
+            path_or_url, settings.downloads, Path(temp_directory)
         )
         simfile_dirs = set(map(lambda p: p.parent, simfile_paths(working_dir)))
 
@@ -102,7 +127,8 @@ def add_song(args, settings: CLISettings):
         elif len(simfile_dirs) == 0:
             raise Exception("No simfiles found.")
         else:
-            # TODO: Maybe this behavior should be changed? Sticking with it for now because it's simpler.
+            # TODO: Maybe this behavior should be changed?
+            # Sticking with it for now because it's simpler.
             raise Exception(
                 "More than one simfile in supplied link/directory"
             ).add_note("Supply songs individually or use add-pack instead.")
@@ -111,7 +137,7 @@ def add_song(args, settings: CLISettings):
 
         # Overwrite if needed
         if dest.exists():
-            if not args.overwrite:
+            if not overwrite:
                 print("Prompt: A folder with the same name already exists.")
                 if settings.delete_macos_files:
                     delete_macos_files(dest)
@@ -133,8 +159,13 @@ def add_song(args, settings: CLISettings):
     print(f"Added {sm.title} to {settings.singles.name}.")
 
 
-def censor(args, settings: CLISettings):
-    path = Path(args.path).absolute()
+def censor(path: Path, settings: CLISettings):
+    """
+    Moves the song in the supplied `path` to `settings.censored`, hiding it from
+    players. `path` must be a subdirectory of `settings.packs` or an exception
+    will be raised.
+    """
+    path = path.absolute()
     # Validate supplied path to sm folder
     if not path.exists():
         raise Exception(f"Error: {str(path)} does not exist")
@@ -160,7 +191,11 @@ def censor(args, settings: CLISettings):
 
 
 def uncensor(settings: CLISettings):
-    # List the simfile_paths that are currently censored and build a list of choices
+    """
+    Lists the songs in `settings.censored` and prompts the user to choose one to
+    uncensor. The uncensored file will be moved back to its original location
+    in settings.packs.
+    """
     simfile_paths: list[Path] = []
     for pack in filter(Path.is_dir, settings.censored.iterdir()):
         for simfile_path in filter(Path.is_dir, pack.iterdir()):
