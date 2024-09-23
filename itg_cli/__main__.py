@@ -1,7 +1,10 @@
 import argparse
 from itg_cli import add_pack, add_song, censor, uncensor
 from pathlib import Path
-from ._config import settings
+from _config import CLISettings
+
+DEFAULT_CONFIG_PATH = Path.home() / ".config" / "itg-cli.toml"
+
 
 subparser_dict = {
     # "subcommand": (
@@ -42,7 +45,12 @@ subparser_dict = {
 }
 
 
-def process_args(subparser_dict):
+def process_args(subparser_dict) -> dict[str, str]:
+    """
+    Builds a parser based off of the command description in `subparser_dict`.
+    Parses the arguments that were passed into the program using this parser
+    and returns the resulting dictionary.
+    """
     parser = argparse.ArgumentParser(description="ITG CLI")
     subparsers = parser.add_subparsers(
         dest="command",
@@ -57,6 +65,12 @@ def process_args(subparser_dict):
 
 def main():
     args = process_args(subparser_dict)
+    if "config" in args:
+        settings = CLISettings.from_toml(args.config)
+    elif DEFAULT_CONFIG_PATH.exists():
+        settings = CLISettings.from_toml(DEFAULT_CONFIG_PATH)
+    else:
+        settings = CLISettings()
 
     match args.command:
         case "add-pack":

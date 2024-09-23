@@ -1,13 +1,10 @@
-from dynaconf import Dynaconf, Validator
 from pathlib import Path
 import os
-
-proj_root = Path(__file__).parent  # /path/to/itg-cli/
-config_path = proj_root.joinpath("settings.toml")
+from typing import Self
 
 
 class CLISettings:
-    packs: Path
+    user_data: Path
     singles: Path
     courses: Path
     cache: Path
@@ -15,16 +12,29 @@ class CLISettings:
     censored: Path
     delete_macos_files: bool
 
-    def __init__(self, settings: Dynaconf):
-        self.packs = Path(settings["packs"])
-        self.singles = Path(settings["singles"])
-        self.courses = Path(settings["courses"])
-        self.cache = Path(settings["cache"])
-        self.downloads = Path(settings["downloads"])
-        self.censored = Path(settings.get("censored", proj_root.joinpath(".censored")))
-        self.delete_macos_files = settings.get("delete_macos_files", False)
-        self.__create_missing_dirs()
-        self.__validate()
+    def __init__(self):
+        """
+        Creates a new config file, attempting to populate with defaults based
+        on the user's operating system. If default settings can not be inferred,
+        warns the user, instructs them to populate the file manually, and exits.
+        """
+        raise NotImplementedError()
+        # self.packs = Path(settings["packs"])
+        # self.singles = Path(settings["singles"])
+        # self.courses = Path(settings["courses"])
+        # self.cache = Path(settings["cache"])
+        # self.downloads = Path(settings["downloads"])
+        # self.censored = Path(settings.get("censored", self.packs.joinpath(".censored")))
+        # self.delete_macos_files = settings.get("delete_macos_files", False)
+        # self.__create_missing_dirs()
+        # self.__validate()
+
+    def from_toml(path: Path) -> Self:
+        """
+        Returns a CLI settings object based on at path.
+        Raises an exception if the fields in the config file can not be found.
+        """
+        raise NotImplementedError()
 
     def __create_missing_dirs(self):
         creatable_dir_fields = [
@@ -55,19 +65,3 @@ class CLISettings:
             e = Exception("One or more invalid fields in config file:")
             for name, d in invalid_fields:
                 e.add_note(f"  {name}: {str(d)}")
-
-
-# TODO: define config type with Path fields
-dynaconf_settings = Dynaconf(
-    envvar_prefix="ITG_CLI",  # export envvars with `export ITG_CLI_FOO=bar`.
-    settings_files=["settings_template.toml", "settings.toml"],
-    validators=[
-        Validator(key, must_exist=True)
-        for key in ["PACKS", "SINGLES", "COURSES", "CACHE", "DOWNLOADS"]
-    ]
-    + [
-        Validator("DELETE_MACOS_FILES", default=False, apply_default_on_none=True),
-    ],
-)
-
-settings = CLISettings(dynaconf_settings)
