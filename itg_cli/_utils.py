@@ -151,7 +151,7 @@ def download_file(url: str, downloads: Path) -> Path:
             url,
             quiet=False,
             fuzzy=True,
-            output=os.path.join(downloads, ""),  # Append trailing /
+            output=os.path.join(downloads, ""),  # Append trailing `/`
         )
         return Path(download_path)
     else:  # try using requests
@@ -198,14 +198,19 @@ def get_download_filename(r: requests.Response) -> str:
 
 def download_with_progress(r: requests.Response, dest: Path) -> None:
     """
-    Writes the content from a streamed request `r` to `dest` and writes a progress bar to stderr
+    Downloads the content from a streamed request `r` to a .part file. Writes a
+    progress bar to stderr tracking progress. Moves the file to dest once it is
+    finished downloading.
     """
+    # Write the file with a munged extension before it's fully downloaded
+    munged_dest = dest.with_suffix(dest.suffix + ".part")
     # https://stackoverflow.com/a/37573701/22049792
     chunk_size = 1024
     total_size = int(r.headers.get("content-length", 0))
     pbar = tqdm(total=total_size, unit="B", unit_scale=True, desc=dest.name)
-    with open(dest, "wb") as file:
+    with open(munged_dest, "wb") as file:
         for chunk in r.iter_content(chunk_size):
             pbar.update(len(chunk))
             file.write(chunk)
+    shutil.move(munged_dest, dest)
     pbar.close()
