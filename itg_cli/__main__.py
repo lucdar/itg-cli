@@ -74,13 +74,27 @@ def main():
 
     match args.command:
         case "add-pack":
-            add_pack(Path(args.path), settings, overwrite=args.overwrite)
+            add_pack(
+                Path(args.path),
+                settings.downloads,
+                settings.packs,
+                settings.courses,
+                overwrite=args.overwrite,
+                delete_macos_files_flag=settings.delete_macos_files,
+            )
         case "add-song":
-            add_song(Path(args.path), settings, overwrite=args.overwrite)
+            add_song(
+                Path(args.path),
+                settings.downloads,
+                settings.singles,
+                settings.cache,
+                overwrite=args.overwrite,
+                delete_macos_files_flag=settings.delete_macos_files,
+            )
         case "censor":
-            censor(Path(args.path), settings)
+            censor(Path(args.path), settings.packs, settings.censored, settings.cache)
         case "uncensor":
-            uncensor(settings)
+            uncensor(settings.censored, settings.packs)
         case "ping":
             print("pong")
 

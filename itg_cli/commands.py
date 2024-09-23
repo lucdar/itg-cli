@@ -4,7 +4,6 @@ from collections import Counter
 from pathlib import Path
 from simfile.dir import SimfilePack
 from tempfile import TemporaryDirectory
-from ._config import CLISettings
 from ._utils import (
     delete_macos_files,
     get_charts_string,
@@ -15,10 +14,17 @@ from ._utils import (
 )
 
 
-def add_pack(path_or_url: str, settings: CLISettings, overwrite: bool = False) -> None:
+def add_pack(
+    path_or_url: str,
+    downloads: Path,
+    packs: Path,
+    courses: Path,
+    overwrite: bool = False,
+    delete_macos_files_flag: bool = False,
+) -> None:
     """
     Takes a path to a local directory or a path/url to an archive and adds the
-    contained pack to `settings.packs`. Supplied local files are not moved.
+    contained pack to `packs`. Supplied local files are not moved.
 
     In the case of multiple valid pack directories (multiple folders containing
     .sm files with different direct parents), a warning will be printed, and the
@@ -30,9 +36,7 @@ def add_pack(path_or_url: str, settings: CLISettings, overwrite: bool = False) -
     overwritten without this check.
     """
     with TemporaryDirectory() as temp_directory:
-        working_dir = setup_working_dir(
-            path_or_url, settings.downloads, Path(temp_directory)
-        )
+        working_dir = setup_working_dir(path_or_url, downloads, Path(temp_directory))
 
         # 2nd parent of a simfile path is a valid pack directory
         # pack_dir_counts stores the # of simfiles in each pack
@@ -53,7 +57,7 @@ def add_pack(path_or_url: str, settings: CLISettings, overwrite: bool = False) -
         else:
             pack_path, _ = pack_dir_counts.popitem()
 
-        if settings.delete_macos_files:
+        if delete_macos_files_flag:
             delete_macos_files(pack_path)
         pack = SimfilePack(pack_path)
         songs = list(pack.simfiles(strict=False))
@@ -64,10 +68,10 @@ def add_pack(path_or_url: str, settings: CLISettings, overwrite: bool = False) -
             print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
 
         # check if pack already exists
-        dest = settings.packs.joinpath(pack_path.name)
+        dest = packs.joinpath(pack_path.name)
         if dest.exists():
             if not overwrite:
-                if settings.delete_macos_files:
+                if delete_macos_files_flag:
                     delete_macos_files(dest)
                 existing_pack = SimfilePack(dest)
                 existing_songs = list(existing_pack.simfiles())
@@ -84,7 +88,7 @@ def add_pack(path_or_url: str, settings: CLISettings, overwrite: bool = False) -
 
         # look for a Courses folder countaining .crs files
         num_courses = 0
-        courses_subfolder = settings.courses.joinpath(pack.name)
+        courses_subfolder = courses.joinpath(pack.name)
         courses_subfolder.mkdir(exist_ok=True)
         crs_parent_dirs = set(map(lambda p: p.parent, working_dir.rglob("*.crs")))
         for crs_parent_dir in crs_parent_dirs:
@@ -102,10 +106,17 @@ def add_pack(path_or_url: str, settings: CLISettings, overwrite: bool = False) -
         print(f"Added {pack.name} with {len(songs)} songs and {num_courses} courses.")
 
 
-def add_song(path_or_url: str, settings: CLISettings, overwrite: bool = False):
+def add_song(
+    path_or_url: str,
+    downloads: Path,
+    singles: Path,
+    cache: Path,
+    overwrite: bool = False,
+    delete_macos_files_flag: bool = False,
+):
     """
     Takes a path to a local directory or a path/url to an archive and adds the
-    contained song to `settings.singles`. Supplied local files are not moved.
+    contained song to `singles`. Supplied local files are not moved.
 
     In the case of multiple valid songs (multiple folders containing
     .sm files), an exception will be raised.
@@ -116,9 +127,7 @@ def add_song(path_or_url: str, settings: CLISettings, overwrite: bool = False):
     the song is overwritten without this check.
     """
     with TemporaryDirectory() as temp_directory:
-        working_dir = setup_working_dir(
-            path_or_url, settings.downloads, Path(temp_directory)
-        )
+        working_dir = setup_working_dir(path_or_url, downloads, Path(temp_directory))
         simfile_dirs = set(map(lambda p: p.parent, simfile_paths(working_dir)))
 
         # Ensure only one simfile was supplied
@@ -133,13 +142,13 @@ def add_song(path_or_url: str, settings: CLISettings, overwrite: bool = False):
                 "More than one simfile in supplied link/directory"
             ).add_note("Supply songs individually or use add-pack instead.")
 
-        dest = settings.singles.joinpath(simfile_root.name)
+        dest = singles.joinpath(simfile_root.name)
 
         # Overwrite if needed
         if dest.exists():
             if not overwrite:
                 print("Prompt: A folder with the same name already exists.")
-                if settings.delete_macos_files:
+                if delete_macos_files_flag:
                     delete_macos_files(dest)
                     delete_macos_files(simfile_root)
                 old = simfile.opendir(dest, strict=False)[0]
@@ -150,28 +159,28 @@ def add_song(path_or_url: str, settings: CLISettings, overwrite: bool = False):
                     exit(1)
             shutil.rmtree(dest)
             # Delete cache entry if it exists
-            cache_entry_name = f"Songs_{settings.singles.name}_{simfile_root.name}"
-            settings.cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
+            cache_entry_name = f"Songs_{singles.name}_{simfile_root.name}"
+            cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
         simfile_root.rename(dest)
-    if settings.delete_macos_files:
+    if delete_macos_files_flag:
         delete_macos_files(simfile_root)
     sm = simfile.opendir(dest, strict=False)[0]
-    print(f"Added {sm.title} to {settings.singles.name}.")
+    print(f"Added {sm.title} to {singles.name}.")
 
 
-def censor(path: Path, settings: CLISettings):
+def censor(path: Path, packs: Path, censored: Path, cache: Path):
     """
-    Moves the song in the supplied `path` to `settings.censored`, hiding it from
-    players. `path` must be a subdirectory of `settings.packs` or an exception
+    Moves the song in the supplied `path` to `censored`, hiding it from
+    players. `path` must be a subdirectory of `packs` or an exception
     will be raised.
     """
     path = path.absolute()
     # Validate supplied path to sm folder
     if not path.exists():
         raise Exception(f"Error: {str(path)} does not exist")
-    if not path.is_relative_to(settings.packs):
+    if not path.is_relative_to(packs):
         raise Exception(
-            f"Supplied path ({path}) is not a subdirectory of settings.packs ({settings.packs})"
+            f"Supplied path ({path}) is not a subdirectory of settings.packs ({packs})"
         )
     try:
         sm, _ = simfile.opendir(path, strict=False)
@@ -179,25 +188,25 @@ def censor(path: Path, settings: CLISettings):
         raise Exception(f"Error: {path} is not a valid simfile directory: {e}")
 
     # Move the simfile to the censored folder under the same pack subdirectory
-    pack_and_song = path.relative_to(settings.packs)
-    destination = settings.censored.joinpath(pack_and_song)
+    pack_and_song = path.relative_to(packs)
+    destination = censored.joinpath(pack_and_song)
     shutil.move(path, destination)
 
     # Remove the song's cache entry if it exists
     cache_entry_name = f"Songs_{path.name}_{path.parent.name}"
-    settings.cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
+    cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
 
     print(f"Censored {sm.title} from {path.parent.name}.")
 
 
-def uncensor(settings: CLISettings):
+def uncensor(censored: Path, packs: Path):
     """
     Lists the songs in `settings.censored` and prompts the user to choose one to
     uncensor. The uncensored file will be moved back to its original location
     in settings.packs.
     """
     simfile_paths: list[Path] = []
-    for pack in filter(Path.is_dir, settings.censored.iterdir()):
+    for pack in filter(Path.is_dir, censored.iterdir()):
         for simfile_path in filter(Path.is_dir, pack.iterdir()):
             sm, _ = simfile.opendir(simfile_path)
             simfile_paths.append(simfile_path)
@@ -216,8 +225,8 @@ def uncensor(settings: CLISettings):
             print("Invalid choice. Please choose again.")
 
     chosen_path = simfile_paths[choice - 1]
-    pack_and_song = chosen_path.relative_to(settings.censored)
-    destination = settings.packs.joinpath(pack_and_song)
+    pack_and_song = chosen_path.relative_to(censored)
+    destination = packs.joinpath(pack_and_song)
     shutil.move(chosen_path, destination)
 
     sm, _ = simfile.opendir(destination)
