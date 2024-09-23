@@ -97,7 +97,7 @@ def add_pack(
                 if file.suffix == ".crs":
                     num_courses += 1
         # move pack to packs directory
-        pack_path.rename(dest)
+        shutil.move(pack_path, dest)
 
     # Print success message
     if num_courses == 1:
@@ -161,7 +161,7 @@ def add_song(
             # Delete cache entry if it exists
             cache_entry_name = f"Songs_{singles.name}_{simfile_root.name}"
             cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
-        simfile_root.rename(dest)
+        shutil.move(simfile_root, dest)
     if delete_macos_files_flag:
         delete_macos_files(simfile_root)
     sm = simfile.opendir(dest, strict=False)[0]
