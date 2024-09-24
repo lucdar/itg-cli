@@ -1,7 +1,7 @@
 import argparse
 from itg_cli import add_pack, add_song, censor, uncensor
 from pathlib import Path
-from _config import CLISettings, DEFAULT_CONFIG_PATH
+from ._config import CLISettings, DEFAULT_CONFIG_PATH
 
 subparser_dict = {
     # "subcommand": (
@@ -63,35 +63,35 @@ def process_args(subparser_dict) -> dict[str, str]:
 def main():
     args = process_args(subparser_dict)
     if "config" in args:
-        settings = CLISettings.from_toml(args.config)
-    elif DEFAULT_CONFIG_PATH.exists():
-        settings = CLISettings.from_toml(DEFAULT_CONFIG_PATH)
+        if not Path(args.config).exists():
+            raise Exception(f"Supplied config {args.config} does not exist.")
+        config = CLISettings(args.config)
     else:
-        settings = CLISettings(DEFAULT_CONFIG_PATH)
+        config = CLISettings(DEFAULT_CONFIG_PATH)
 
     match args.command:
         case "add-pack":
             add_pack(
                 Path(args.path),
-                settings.packs,
-                settings.courses,
-                downloads=settings.downloads,
+                config.packs,
+                config.courses,
+                downloads=config.downloads,
                 overwrite=args.overwrite,
-                delete_macos_files_flag=settings.delete_macos_files,
+                delete_macos_files_flag=config.delete_macos_files,
             )
         case "add-song":
             add_song(
                 Path(args.path),
-                settings.singles,
-                settings.cache,
-                downloads=settings.downloads,
+                config.singles,
+                config.cache,
+                downloads=config.downloads,
                 overwrite=args.overwrite,
-                delete_macos_files_flag=settings.delete_macos_files,
+                delete_macos_files_flag=config.delete_macos_files,
             )
         case "censor":
-            censor(Path(args.path), settings.packs, settings.censored, settings.cache)
+            censor(Path(args.path), config.packs, config.censored, config.cache)
         case "uncensor":
-            uncensor(settings.censored, settings.packs)
+            uncensor(config.censored, config.packs)
         case "ping":
             print("pong")
 
