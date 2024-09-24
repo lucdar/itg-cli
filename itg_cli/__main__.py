@@ -1,10 +1,7 @@
 import argparse
 from itg_cli import add_pack, add_song, censor, uncensor
 from pathlib import Path
-from _config import CLISettings
-
-DEFAULT_CONFIG_PATH = Path.home() / ".config" / "itg-cli.toml"
-
+from _config import CLISettings, DEFAULT_CONFIG_PATH
 
 subparser_dict = {
     # "subcommand": (
@@ -70,24 +67,24 @@ def main():
     elif DEFAULT_CONFIG_PATH.exists():
         settings = CLISettings.from_toml(DEFAULT_CONFIG_PATH)
     else:
-        settings = CLISettings()
+        settings = CLISettings(DEFAULT_CONFIG_PATH)
 
     match args.command:
         case "add-pack":
             add_pack(
                 Path(args.path),
-                settings.downloads,
                 settings.packs,
                 settings.courses,
+                downloads=settings.downloads,
                 overwrite=args.overwrite,
                 delete_macos_files_flag=settings.delete_macos_files,
             )
         case "add-song":
             add_song(
                 Path(args.path),
-                settings.downloads,
                 settings.singles,
                 settings.cache,
+                downloads=settings.downloads,
                 overwrite=args.overwrite,
                 delete_macos_files_flag=settings.delete_macos_files,
             )

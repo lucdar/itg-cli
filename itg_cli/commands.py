@@ -16,9 +16,9 @@ from ._utils import (
 
 def add_pack(
     path_or_url: str,
-    downloads: Path,
     packs: Path,
     courses: Path,
+    downloads: Path | None = None,
     overwrite: bool = False,
     delete_macos_files_flag: bool = False,
 ) -> None:
@@ -108,9 +108,9 @@ def add_pack(
 
 def add_song(
     path_or_url: str,
-    downloads: Path,
     singles: Path,
     cache: Path,
+    downloads: Path | None = None,
     overwrite: bool = False,
     delete_macos_files_flag: bool = False,
 ):
