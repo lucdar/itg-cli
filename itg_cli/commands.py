@@ -75,7 +75,7 @@ def add_pack(
                     delete_macos_files(dest)
                 existing_pack = SimfilePack(dest)
                 existing_songs = list(existing_pack.simfiles())
-                diff = len(songs) - len(existing_songs)
+                diff = len(existing_songs) - len(songs)
                 if diff > 0:
                     print(f"Prompt: Pack already exists with {diff} fewer songs.")
                 elif diff < 0:
@@ -138,9 +138,9 @@ def add_song(
         else:
             # TODO: Maybe this behavior should be changed?
             # Sticking with it for now because it's simpler.
-            raise Exception(
-                "More than one simfile in supplied link/directory"
-            ).add_note("Supply songs individually or use add-pack instead.")
+            e = Exception("More than one simfile in supplied link/directory")
+            e.add_note("Supply songs individually or use add-pack instead.")
+            raise e
 
         dest = singles.joinpath(simfile_root.name)
 
