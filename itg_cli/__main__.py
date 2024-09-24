@@ -72,7 +72,7 @@ def main():
     match args.command:
         case "add-pack":
             add_pack(
-                Path(args.path),
+                args.path,
                 config.packs,
                 config.courses,
                 downloads=config.downloads,
@@ -81,7 +81,7 @@ def main():
             )
         case "add-song":
             add_song(
-                Path(args.path),
+                args.path,
                 config.singles,
                 config.cache,
                 downloads=config.downloads,

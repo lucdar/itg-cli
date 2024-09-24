@@ -36,7 +36,7 @@ def add_pack(
     overwritten without this check.
     """
     with TemporaryDirectory() as temp_directory:
-        working_dir = setup_working_dir(path_or_url, downloads, Path(temp_directory))
+        working_dir = setup_working_dir(path_or_url, Path(temp_directory), downloads)
 
         # 2nd parent of a simfile path is a valid pack directory
         # pack_dir_counts stores the # of simfiles in each pack
@@ -127,7 +127,7 @@ def add_song(
     the song is overwritten without this check.
     """
     with TemporaryDirectory() as temp_directory:
-        working_dir = setup_working_dir(path_or_url, downloads, Path(temp_directory))
+        working_dir = setup_working_dir(path_or_url, Path(temp_directory), downloads)
         simfile_dirs = set(map(lambda p: p.parent, simfile_paths(working_dir)))
 
         # Ensure only one simfile was supplied
