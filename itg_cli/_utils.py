@@ -113,18 +113,24 @@ def prompt_overwrite(item: str) -> bool:
                 print("Invalid choice")
 
 
-def setup_working_dir(path_str: str, downloads: Path, temp: Path) -> Path:
+def setup_working_dir(path_or_url: str, temp: Path, downloads: Path | None) -> Path:
     """
     Takes the supplied parameter for an add command and does any necessary
     extraction/downloading. Moves the directory to temp if it was downloaded
     or extracted; copies if supplied as a path to a local directory instead.
+    If downloads is None, saves the downloaded file to the temp dir so it is
+    deleted when the program exits.
     """
     downloaded, extracted = False, False
-    if path_str.startswith("http"):
-        path = download_file(path_str, downloads)
+    # Download if URL
+    if path_or_url.startswith("http"):
+        if downloads is None:
+            path = download_file(path_or_url, temp)
+        else:
+            path = download_file(path_or_url, downloads)
         downloaded = True
     else:
-        path = Path(path_str).absolute()
+        path = Path(path_or_url).absolute()
     if not path.exists():
         raise Exception("Path does not exist:", str(path))
     if not path.is_dir():
