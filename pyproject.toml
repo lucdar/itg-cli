@@ -1,0 +1,16 @@
+[project]
+name="itg-cli"
+version="0.0.1"
+dependencies = [
+    "simfile==2.1.1",
+    "gdown>=5.2.0",
+    "pyrfc6266>=1.0.2",
+    "tomlkit>=0.13.2",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+itg-cli = "itg_cli.__main__:main"

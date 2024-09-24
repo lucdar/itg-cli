@@ -1,4 +1,0 @@
-simfile==2.1.1
-gdown>=5.2.0
-pyrfc6266>=1.0.2
-dynaconf>=3.2.5
