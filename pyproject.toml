@@ -1,13 +1,13 @@
 [project]
 name="itg-cli"
-version="0.0.1"
+version="0.0.2"
 dependencies = [
     "simfile==2.1.1",
     "gdown>=5.2.0",
     "pyrfc6266>=1.0.2",
     "tomlkit>=0.13.2",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [{name = "Lucas Clark"}]
 keywords = ["itg", "cli", "python", "itgmania", "stepmania"]
 classifiers = [
@@ -27,3 +27,8 @@ build-backend = "setuptools.build_meta"
 
 [project.scripts]
 itg-cli = "itg_cli.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["itg_cli"]
+[tool.setuptools.package-data]
+itg_cli = ["config_template.toml"]
