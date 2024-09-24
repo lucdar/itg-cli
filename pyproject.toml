@@ -7,6 +7,19 @@ dependencies = [
     "pyrfc6266>=1.0.2",
     "tomlkit>=0.13.2",
 ]
+requires-python = ">=3.9"
+authors = [{name = "Lucas Clark"}]
+keywords = ["itg", "cli", "python", "itgmania", "stepmania"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.9"
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/lucdar/itg-cli"
 
 [build-system]
 requires = ["setuptools"]
