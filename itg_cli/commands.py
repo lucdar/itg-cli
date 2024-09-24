@@ -168,7 +168,7 @@ def add_song(
     print(f"Added {sm.title} to {singles.name}.")
 
 
-def censor(path: Path, packs: Path, censored: Path, cache: Path):
+def censor(path: Path, packs: Path, cache: Path):
     """
     Moves the song in the supplied `path` to `censored`, hiding it from
     players. `path` must be a subdirectory of `packs` or an exception
@@ -189,7 +189,7 @@ def censor(path: Path, packs: Path, censored: Path, cache: Path):
 
     # Move the simfile to the censored folder under the same pack subdirectory
     pack_and_song = path.relative_to(packs)
-    destination = censored.joinpath(pack_and_song)
+    destination = packs / ".censored" / pack_and_song
     shutil.move(path, destination)
 
     # Remove the song's cache entry if it exists
@@ -199,12 +199,14 @@ def censor(path: Path, packs: Path, censored: Path, cache: Path):
     print(f"Censored {sm.title} from {path.parent.name}.")
 
 
-def uncensor(censored: Path, packs: Path):
+def uncensor(packs: Path):
     """
     Lists the songs in `settings.censored` and prompts the user to choose one to
     uncensor. The uncensored file will be moved back to its original location
     in settings.packs.
     """
+    # TODO: make this command more module-friendly
+    censored = packs / ".censored"
     simfile_paths: list[Path] = []
     for pack in filter(Path.is_dir, censored.iterdir()):
         for simfile_path in filter(Path.is_dir, pack.iterdir()):
