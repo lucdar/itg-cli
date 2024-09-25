@@ -1,7 +1,7 @@
 import argparse
 from itg_cli import add_pack, add_song, censor, uncensor
 from pathlib import Path
-from ._config import CLISettings, DEFAULT_CONFIG_PATH
+from itg_cli._config import CLISettings, DEFAULT_CONFIG_PATH
 
 subparser_dict = {
     # "subcommand": (
