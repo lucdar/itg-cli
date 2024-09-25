@@ -1,11 +1,12 @@
 import os
 import platform
 import tomlkit
+from importlib.resources import files
 from tomlkit.toml_file import TOMLFile
 from pathlib import Path
 
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "itg-cli.toml"
-TEMPLATE_PATH = Path(__file__).with_name("config_template.toml")
+TEMPLATE_PATH = files("itg_cli").joinpath("config_template.toml")
 
 
 class CLISettings:
