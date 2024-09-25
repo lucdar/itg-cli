@@ -1,6 +1,6 @@
 [project]
 name="itg-cli"
-version="0.0.2"
+version="0.0.3"
 dependencies = [
     "simfile==2.1.1",
     "gdown>=5.2.0",

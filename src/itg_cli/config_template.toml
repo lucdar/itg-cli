@@ -1,5 +1,5 @@
 # ITG CLI Config File
-version='0.0.1'
+version='0.0.3'
 
 [required]
 # The root of your itgmania/stepmania user-data/portable install folder.
