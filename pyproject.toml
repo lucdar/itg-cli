@@ -27,8 +27,3 @@ build-backend = "setuptools.build_meta"
 
 [project.scripts]
 itg-cli = "itg_cli.__main__:main"
-
-[tool.setuptools.packages.find]
-where = ["itg_cli"]
-[tool.setuptools.package-data]
-itg_cli = ["config_template.toml"]
