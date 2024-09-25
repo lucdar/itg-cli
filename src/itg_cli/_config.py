@@ -77,7 +77,7 @@ class CLISettings:
             case "Darwin":  # MacOS
                 root = Path.home() / "Library" / "Application Support" / "ITGmania"
                 cache = Path.home() / "Library" / "Caches" / "ITGmania"
-                template["optional"]["cache"] = cache
+                template["optional"]["cache"] = tomlkit.string(str(cache), literal=True)
             case _:
                 raise Exception("Unsupported platform.")
         template["required"]["root"] = tomlkit.string(str(root), literal=True)
