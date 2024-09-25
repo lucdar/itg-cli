@@ -96,10 +96,11 @@ class CLISettings:
         invalid_fields = []
         for d, name in dir_fields:
             if name == "singles" and d.parent.exists():
-                d.mkdir(exist_ok=True)
+                # Singles might not exist until add-song is called
+                continue
             if name == "downloads" and d is None:
                 continue
-            if not d.is_dir and os.access(d, os.W_OK):
+            if not (d.is_dir() and os.access(d, os.W_OK)):
                 invalid_fields.append((name, d))
         if len(invalid_fields) > 0:
             e = Exception("One or more invalid fields in config file:")

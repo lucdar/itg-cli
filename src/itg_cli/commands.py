@@ -161,6 +161,7 @@ def add_song(
             # Delete cache entry if it exists
             cache_entry_name = f"Songs_{singles.name}_{simfile_root.name}"
             cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
+        dest.parent.mkdir(parents=True, exists_ok=True)
         shutil.move(simfile_root, dest)
     if delete_macos_files_flag:
         delete_macos_files(simfile_root)
