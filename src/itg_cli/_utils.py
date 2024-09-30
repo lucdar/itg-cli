@@ -37,22 +37,6 @@ def print_simfile_data(sm: Simfile, label: str = "data") -> None:
     )
 
 
-def get_charts_as_ints(sm: Simfile, default: int = 0) -> list[int]:
-    """
-    Returns a list of charts as integers.
-    If the meter in the simfile is not a number, it will be replaced with the `default` value.
-    """
-    charts = sm.charts
-
-    def getMeter(c: Chart):
-        if c.meter.isdigit():
-            return int(c.meter)
-        else:
-            return default
-
-    return [getMeter(chart) for chart in charts]
-
-
 def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     """
     Returns the string representation of chart meters of a simfile (with quotes removed).
@@ -72,12 +56,9 @@ def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     return str([fn(c) for c in sm.charts]).replace("'", "")
 
 
-def delete_macos_files(path: str) -> None:
+def delete_macos_files(path: Path) -> None:
     """Deletes all `._` files in the supplied path"""
-    for root, _, files in os.walk(path):
-        for file in files:
-            if file.startswith("._"):
-                os.remove(os.path.join(root, file))
+    list(map(Path.unlink, path.rglob("._*")))
 
 
 def extract(archive_path: Path) -> Path:

@@ -116,7 +116,7 @@ def add_song(
 ):
     """
     Takes a path to a local directory or a path/url to an archive and adds the
-    contained song to `singles`. Supplied local files are not moved.
+    contained song to `singles`. Supplied local files are not changed/moved.
 
     In the case of multiple valid songs (multiple folders containing
     .sm files), an exception will be raised.
@@ -161,7 +161,7 @@ def add_song(
             # Delete cache entry if it exists
             cache_entry_name = f"Songs_{singles.name}_{simfile_root.name}"
             cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
-        dest.parent.mkdir(parents=True, exists_ok=True)
+        dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(simfile_root, dest)
     if delete_macos_files_flag:
         delete_macos_files(simfile_root)
@@ -186,7 +186,7 @@ def censor(path: Path, packs: Path, cache: Path):
     try:
         sm, _ = simfile.opendir(path, strict=False)
     except Exception as e:
-        raise Exception(f"Error: {path} is not a valid simfile directory: {e}")
+        raise Exception(f"{path} is not a valid simfile directory: {e}")
 
     # Move the simfile to the censored folder under the same pack subdirectory
     pack_and_song = path.relative_to(packs)

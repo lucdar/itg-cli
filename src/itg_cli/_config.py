@@ -54,8 +54,9 @@ class CLISettings:
         self.delete_macos_files = bool(required["delete_macos_files"])
         # Infer unbound or empty string bindings for optional keys
         optional = toml_doc["optional"]
-        downloads = optional.get("downloads")
-        self.downloads = None if not downloads else Path(downloads)
+        raw_downloads = optional.get("downloads")
+        # If toml key is empty, set to None. Otherwise convert to Path
+        self.downloads = None if not raw_downloads else Path(raw_downloads)
         self.packs = Path(optional.get("packs") or self.root / "Songs")
         self.courses = Path(optional.get("courses") or self.root / "Courses")
         self.cache = Path(optional.get("cache") or self.root / "Cache")
