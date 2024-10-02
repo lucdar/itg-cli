@@ -6,7 +6,6 @@ from tomlkit.toml_file import TOMLFile
 from typing import Optional
 from pathlib import Path
 
-DEFAULT_CONFIG_PATH = Path.home() / ".config" / "itg-cli.toml"
 TEMPLATE_PATH = files("itg_cli").joinpath("config_template.toml")
 
 
@@ -20,7 +19,7 @@ class CLISettings:
     courses: Path
     cache: Path
 
-    def __init__(self, toml: Path):
+    def __init__(self, toml: Path, write_default: bool = False):
         """
         Creates a CLI settings object based on the toml file at `toml`.
 
@@ -30,6 +29,8 @@ class CLISettings:
         """
         self.location = toml
         if not self.location.exists():
+            if not write_default:
+                raise Exception(f"No config found at supplied path: {toml}")
             self.__write_default_toml(toml)
 
         # Ensure required tables are present
@@ -81,11 +82,10 @@ class CLISettings:
                 cache = Path.home() / "Library" / "Caches" / "ITGmania"
                 template["optional"]["cache"] = tomlkit.string(str(cache), literal=True)
             case _:
-                raise Exception("Unsupported platform.")
+                raise Exception(f"Unsupported platform: {platform.system()}")
         template["required"]["root"] = tomlkit.string(str(root), literal=True)
         toml.parent.mkdir(parents=True, exist_ok=True)
         TOMLFile(toml).write(template)
-        print(f"Created new config file at {toml}")
 
     def __validate_dirs(self):
         dir_fields = [
