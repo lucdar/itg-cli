@@ -1,6 +1,6 @@
 [project]
 name="itg-cli"
-version="0.0.3"
+dynamic = ["version"]
 dependencies = [
     "simfile==2.1.1",
     "gdown>=5.2.0",
@@ -27,3 +27,6 @@ build-backend = "setuptools.build_meta"
 
 [project.scripts]
 itg-cli = "itg_cli.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "itg_cli.__version__"}
