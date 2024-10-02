@@ -27,7 +27,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-itg-cli = "itg_cli.__main__:main"
+itg-cli = "itg_cli.__main__:cli"
 
 [tool.setuptools.dynamic]
 version = {attr = "itg_cli.__version__"}

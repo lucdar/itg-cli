@@ -4,6 +4,7 @@ import itg_cli
 from pathlib import Path
 from rich import print, panel
 from typing import Annotated, Optional, TypeAlias
+from itg_cli import __version__
 from itg_cli._config import CLISettings
 
 DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
@@ -16,13 +17,14 @@ OverwriteOption: TypeAlias = Annotated[
         help="automatically accept overwrite confirmation",
     ),
 ]
-cli = typer.Typer()
+cli = typer.Typer(no_args_is_help=True)
 
 
 @cli.command("init-config")
 def init_config(
     path: Annotated[Optional[Path], typer.Argument()] = DEFAULT_CONFIG_PATH,
 ):
+    """Writes a config file with default values to the supplied directory or the default config path. Overwrites existing config if it exists."""
     cfg = CLISettings(path, write_default=True)
     print(
         panel.Panel(
@@ -70,23 +72,40 @@ def add_song(
 
 @cli.command()
 def censor(path: Path, config_path: ConfigOption = DEFAULT_CONFIG_PATH):
-    """Moves a song (subdirectory of your singles path) to your"""
+    """Moves a song in your packs folder to a (configurable) hidden folder."""
     config = CLISettings(config_path)
     itg_cli.censor(path, config.packs, config.censored, config.cache)
 
 
 @cli.command()
 def uncensor(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
+    """Displays a list of censored songs and prompts you to select one to uncensor."""
     config = CLISettings(config_path)
     itg_cli.uncensor(config.censored, config.packs)
 
 
-def main():
+def version_callback(run: bool):
+    if run:
+        print(f"itg-cli version {__version__}")
+        raise typer.Exit()
+
+
+@cli.callback()
+def typer_entry(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            callback=version_callback,
+            is_eager=True,
+            help="Displays the version and exits.",
+        ),
+    ] = False,
+):
     # Check config and create default config if none supplied
     if "init-config" not in sys.argv and not DEFAULT_CONFIG_PATH.exists():
         init_config(DEFAULT_CONFIG_PATH)
-    cli()
 
 
 if __name__ == "__main__":
-    main()
+    cli()
