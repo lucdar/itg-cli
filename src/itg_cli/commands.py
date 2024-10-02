@@ -5,7 +5,7 @@ from pathlib import Path
 from simfile.dir import SimfilePack
 from tempfile import TemporaryDirectory
 from typing import Optional
-from ._utils import (
+from itg_cli._utils import (
     delete_macos_files,
     get_charts_string,
     print_simfile_data,
