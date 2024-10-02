@@ -3,6 +3,7 @@ import platform
 import tomlkit
 from importlib.resources import files
 from tomlkit.toml_file import TOMLFile
+from typing import Optional
 from pathlib import Path
 
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "itg-cli.toml"
@@ -14,7 +15,7 @@ class CLISettings:
     root: Path
     singles: Path
     delete_macos_files: bool
-    downloads: Path | None
+    downloads: Optional[Path]
     packs: Path
     courses: Path
     cache: Path

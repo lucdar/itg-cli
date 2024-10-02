@@ -7,7 +7,7 @@ from itertools import chain
 from pathlib import Path
 from simfile.types import Simfile, Chart
 from tqdm import tqdm
-from typing import Iterable
+from typing import Iterable, Optional
 
 
 def simfile_paths(path: Path) -> Iterable[Path]:
@@ -94,7 +94,7 @@ def prompt_overwrite(item: str) -> bool:
                 print("Invalid choice")
 
 
-def setup_working_dir(path_or_url: str, temp: Path, downloads: Path | None) -> Path:
+def setup_working_dir(path_or_url: str, temp: Path, downloads: Optional[Path]) -> Path:
     """
     Takes the supplied parameter for an add command and does any necessary
     extraction/downloading. Moves the directory to temp if it was downloaded

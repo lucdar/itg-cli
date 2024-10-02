@@ -4,6 +4,7 @@ from collections import Counter
 from pathlib import Path
 from simfile.dir import SimfilePack
 from tempfile import TemporaryDirectory
+from typing import Optional
 from ._utils import (
     delete_macos_files,
     get_charts_string,
@@ -18,7 +19,7 @@ def add_pack(
     path_or_url: str,
     packs: Path,
     courses: Path,
-    downloads: Path | None = None,
+    downloads: Optional[Path] = None,
     overwrite: bool = False,
     delete_macos_files_flag: bool = False,
 ) -> None:
@@ -110,7 +111,7 @@ def add_song(
     path_or_url: str,
     singles: Path,
     cache: Path,
-    downloads: Path | None = None,
+    downloads: Optional[Path] = None,
     overwrite: bool = False,
     delete_macos_files_flag: bool = False,
 ):
