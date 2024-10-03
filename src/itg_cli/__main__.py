@@ -2,7 +2,7 @@ import sys
 import typer
 import itg_cli
 from pathlib import Path
-from rich import print, panel
+from rich import panel, print, prompt
 from typing import Annotated, Optional, TypeAlias
 from itg_cli import __version__
 from itg_cli._config import CLISettings
@@ -24,7 +24,7 @@ cli = typer.Typer(no_args_is_help=True)
 def init_config(
     path: Annotated[Optional[Path], typer.Argument()] = DEFAULT_CONFIG_PATH,
 ):
-    """Writes a config file with default values to the supplied directory or the default config path. Overwrites existing config if it exists."""
+    """Write a config file with default values to the supplied directory or the default config path. Prompts to overwrite existing config if it exists."""
     cfg = CLISettings(path, write_default=True)
     print(
         panel.Panel(
@@ -72,14 +72,14 @@ def add_song(
 
 @cli.command()
 def censor(path: Path, config_path: ConfigOption = DEFAULT_CONFIG_PATH):
-    """Moves a song in your packs folder to a (configurable) hidden folder."""
+    """Move a song in your packs folder to a (configurable) hidden folder."""
     config = CLISettings(config_path)
     itg_cli.censor(path, config.packs, config.censored, config.cache)
 
 
 @cli.command()
 def uncensor(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
-    """Displays a list of censored songs and prompts you to select one to uncensor."""
+    """Display a list of censored songs and prompts you to select one to uncensor."""
     config = CLISettings(config_path)
     itg_cli.uncensor(config.censored, config.packs)
 
@@ -98,7 +98,7 @@ def typer_entry(
             "--version",
             callback=version_callback,
             is_eager=True,
-            help="Displays the version and exits.",
+            help="Display the version and exit.",
         ),
     ] = False,
 ):
