@@ -2,7 +2,7 @@ import sys
 import typer
 import itg_cli
 from pathlib import Path
-from rich import panel, print, prompt
+from rich import panel, print
 from typing import Annotated, Optional, TypeAlias
 from itg_cli import __version__
 from itg_cli._config import CLISettings
@@ -12,9 +12,11 @@ ConfigOption: TypeAlias = Annotated[
     Path, typer.Option("--config", help="path to a .toml config file")
 ]
 OverwriteOption: TypeAlias = Annotated[
-    bool,
+    Optional[bool],
     typer.Option(
-        help="automatically accept overwrite confirmation",
+        "--overwrite",
+        "-o",
+        help="automatically overwrite without confirming",
     ),
 ]
 cli = typer.Typer(no_args_is_help=True)
@@ -36,9 +38,9 @@ def init_config(
 
 @cli.command("add-pack")
 def add_pack(
-    path_or_url: str,
+    path_or_url: Annotated[str, typer.Argument(help="path or URL to the pack to add")],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
-    overwrite: OverwriteOption = False,
+    overwrite: OverwriteOption = None,
 ):
     """Add a pack from a supplied link or path."""
     config = CLISettings(config_path)
@@ -54,13 +56,13 @@ def add_pack(
 
 @cli.command("add-song")
 def add_song(
-    path_or_url: str,
+    path_or_url: Annotated[str, typer.Argument(help="path or URL to the song to add")],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
-    overwrite: OverwriteOption = False,
+    overwrite: OverwriteOption = None,
 ):
     """Add a song from a supplied link or path to your configured Singles pack."""
     config = CLISettings(config_path)
-    itg_cli.add_pack(
+    itg_cli.add_song(
         path_or_url,
         config.packs,
         config.courses,
@@ -71,22 +73,25 @@ def add_song(
 
 
 @cli.command()
-def censor(path: Path, config_path: ConfigOption = DEFAULT_CONFIG_PATH):
-    """Move a song in your packs folder to a (configurable) hidden folder."""
+def censor(
+    path: Annotated[str, typer.Argument(help="path to the song to censor")],
+    config_path: ConfigOption = DEFAULT_CONFIG_PATH,
+):
+    """Move a song in your packs folder to packs/.censored, hiding it from players."""
     config = CLISettings(config_path)
-    itg_cli.censor(path, config.packs, config.censored, config.cache)
+    itg_cli.censor(Path(path), config.packs, config.cache)
 
 
 @cli.command()
 def uncensor(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
     """Display a list of censored songs and prompts you to select one to uncensor."""
     config = CLISettings(config_path)
-    itg_cli.uncensor(config.censored, config.packs)
+    itg_cli.uncensor(config.packs)
 
 
 def version_callback(run: bool):
     if run:
-        print(f"itg-cli version {__version__}")
+        print(f"itg-cli [white][bold]{__version__}")
         raise typer.Exit()
 
 
