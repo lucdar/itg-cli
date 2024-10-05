@@ -28,10 +28,10 @@ class CLISettings:
         warns the user, instructs them to populate the file manually, and exits.
         """
         self.location = toml
-        if not self.location.exists():
-            if not write_default:
-                raise Exception(f"No config found at supplied path: {toml}")
+        if write_default:
             self.__write_default_toml(toml)
+        elif not self.location.exists():
+            raise Exception(f"No config found at supplied path: {toml}")
 
         # Ensure required tables are present
         toml_doc = TOMLFile(toml).read()
@@ -69,7 +69,11 @@ class CLISettings:
     def __write_default_toml(self, toml: Path):
         """
         Writes a itg-cli config file to `toml` with platform-specific defaults set.
+
+        Raises an exception if toml does not end with `.toml`.
         """
+        if toml.suffix != ".toml":
+            raise Exception(f"{toml} is not a .toml file.")
         template = TOMLFile(TEMPLATE_PATH).read()
         match platform.system():
             case "Windows":
