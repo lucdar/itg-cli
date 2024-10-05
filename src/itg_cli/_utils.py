@@ -8,6 +8,7 @@ from pathlib import Path
 from simfile.types import Simfile, Chart
 from tqdm import tqdm
 from typing import Iterable, Optional
+from rich.prompt import Confirm
 
 
 def simfile_paths(path: Path) -> Iterable[Path]:
@@ -81,17 +82,7 @@ def prompt_overwrite(item: str) -> bool:
     Prompts the user to overwrite the existing `item`.
     Overwriting returns `True`, Keeping returns `False`.
     """
-    while True:
-        print(f"Overwrite existing {item}? [Y/n] ", end="")
-        match input().lower():
-            case "y" | "":
-                print(f"Overwriting exisiting {item}.")
-                return True
-            case "n":
-                print(f"Keeping existing {item}.")
-                return False
-            case _:
-                print("Invalid choice")
+    return Confirm.ask(f"Overwrite existing {item}?", default=True)
 
 
 def setup_working_dir(path_or_url: str, temp: Path, downloads: Optional[Path]) -> Path:
