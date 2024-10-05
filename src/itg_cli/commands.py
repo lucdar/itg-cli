@@ -172,7 +172,7 @@ def add_song(
 
 def censor(path: Path, packs: Path, cache: Path):
     """
-    Moves the song in the supplied `path` to `censored`, hiding it from
+    Moves the song in the supplied `path` to `packs`/.censored, hiding it from
     players. `path` must be a subdirectory of `packs` or an exception
     will be raised.
     """
