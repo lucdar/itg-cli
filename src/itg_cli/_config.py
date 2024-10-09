@@ -7,6 +7,12 @@ from typing import Optional
 from pathlib import Path
 
 
+class ConfigError(Exception):
+    """Custom exception for configuration errors."""
+
+    pass
+
+
 class CLISettings:
     location: Path  # The path to the .toml file
     root: Path
@@ -37,16 +43,13 @@ class CLISettings:
         toml_doc = TOMLFile(toml).read()
         for table in ["required", "optional"]:
             if table not in toml_doc:
-                e = Exception(f"Missing table ({table}) in config:")
-                e.add_note(f"{self.location}")
-                raise e
+                raise ConfigError(f"Missing table ({table}) in config: {self.location}")
         required = toml_doc["required"]
         for key in ["root", "singles_pack_name", "delete_macos_files"]:
             if not required.get(key):
-                e = Exception(
-                    f"Required config value ({key}) is empty or unbound in config: {self.location}"
+                raise ConfigError(
+                    f"Required field ({key}) is empty or unbound in config: {self.location}"
                 )
-                raise e
 
         # Set properties
         self.root = Path(required["root"])
@@ -81,7 +84,7 @@ class CLISettings:
                 root = Path.home() / "Library" / "Application Support" / "ITGmania"
                 cache = Path.home() / "Library" / "Caches" / "ITGmania"
             case _:
-                raise Exception(f"Unsupported platform: {platform.system()}")
+                raise ConfigError(f"Unsupported platform: {platform.system()}")
         template["required"]["root"] = tomlkit.string(str(root), literal=True)
         if cache:
             template["optional"]["cache"] = tomlkit.string(str(cache), literal=True)
@@ -107,7 +110,7 @@ class CLISettings:
             if path and not (path.is_dir() and os.access(path, os.W_OK))
         }
         if invalid:
-            raise Exception(
+            raise ConfigError(
                 "Invalid fields in config file:\n"
                 + "\n".join(f"{name}: {str(path)}" for name, path in invalid.items())
                 + f"\nPlease edit your config file: {self.location}"
