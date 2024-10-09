@@ -139,9 +139,10 @@ def add_song(
         else:
             # TODO: Maybe this behavior should be changed?
             # Sticking with it for now because it's simpler.
-            e = Exception("More than one simfile in supplied link/directory")
-            e.add_note("Supply songs individually or use add-pack instead.")
-            raise e
+            raise Exception(
+                "More than one simfile in supplied link/directory\n"
+                + "Supply songs individually or use add-pack instead."
+            )
 
         dest = singles.joinpath(simfile_root.name)
 
