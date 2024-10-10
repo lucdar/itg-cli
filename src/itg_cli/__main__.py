@@ -69,7 +69,7 @@ def add_song(
     itg_cli.add_song(
         path_or_url,
         config.singles,
-        config.courses,
+        config.cache,
         downloads=config.downloads,
         overwrite=overwrite,
         delete_macos_files_flag=config.delete_macos_files,
