@@ -46,7 +46,7 @@ class CLISettings:
                 raise ConfigError(f"Missing table ({table}) in config: {self.location}")
         required = toml_doc["required"]
         for key in ["root", "singles_pack_name", "delete_macos_files"]:
-            if not required.get(key):
+            if required.get(key) is None:
                 raise ConfigError(
                     f"Required field ({key}) is empty or unbound in config: {self.location}"
                 )
