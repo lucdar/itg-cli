@@ -1,4 +1,4 @@
 from itg_cli.commands import add_pack, add_song, censor, uncensor
 
 __all__ = ["add_pack", "add_song", "censor", "uncensor"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
