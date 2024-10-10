@@ -68,7 +68,7 @@ def add_song(
     config = CLISettings(config_path)
     itg_cli.add_song(
         path_or_url,
-        config.packs,
+        config.singles,
         config.courses,
         downloads=config.downloads,
         overwrite=overwrite,

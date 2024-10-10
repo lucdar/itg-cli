@@ -46,7 +46,7 @@ class CLISettings:
                 raise ConfigError(f"Missing table ({table}) in config: {self.location}")
         required = toml_doc["required"]
         for key in ["root", "singles_pack_name", "delete_macos_files"]:
-            if not required.get(key):
+            if required.get(key) is None:
                 raise ConfigError(
                     f"Required field ({key}) is empty or unbound in config: {self.location}"
                 )
@@ -59,9 +59,9 @@ class CLISettings:
         self.downloads = (
             Path(optional["downloads"]) if optional.get("downloads") else None
         )
-        self.packs = Path(optional.get("packs", self.root / "Songs"))
-        self.courses = Path(optional.get("courses", self.root / "Courses"))
-        self.cache = Path(optional.get("cache", self.root / "Cache"))
+        self.packs = Path(optional.get("packs") or self.root / "Songs")
+        self.courses = Path(optional.get("courses") or self.root / "Courses")
+        self.cache = Path(optional.get("cache") or self.root / "Cache")
         self.singles = self.packs / required["singles_pack_name"]
 
         self.__validate_dirs()
