@@ -30,14 +30,17 @@ class CLISettings:
         Creates a CLI settings object based on the toml file at `toml`.
 
         If `toml` does not exist, creates a new .toml file with defaults based
-        on the user's operating system. If default settings can not be inferred,
-        warns the user, instructs them to populate the file manually, and exits.
+        on the user's operating system. If default settings can not be
+        inferred, warns the user, instructs them to populate the file manually,
+        and exits.
         """
         self.location = toml
         if write_default:
             self.__write_default_toml(toml)
         elif not self.location.exists():
-            raise FileNotFoundError(f"No config found at supplied path: {toml}")
+            raise FileNotFoundError(
+                f"No config found at supplied path: {toml}"
+            )
 
         # Ensure required tables and fields are present
         toml_doc = TOMLFile(toml).read()

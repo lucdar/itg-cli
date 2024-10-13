@@ -40,12 +40,15 @@ def print_simfile_data(sm: Simfile, label: str = "data") -> None:
 
 def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     """
-    Returns the string representation of chart meters of a simfile (with quotes removed).
-    Also includes the difficulty label if `difficulty_labels` is True.
+    Returns the string representation of chart meters of a simfile (with
+    quotes removed). Also includes the difficulty label if `difficulty_labels`
+    is True.
 
     Example:
-        get_charts_string(sm) -> "[5, 7, 10, 12]"
-        get_charts_string(sm, difficulty_labels=True) -> "[Easy 5, Medium 7, Hard 10, Challenge 12]"
+        `get_charts_string(sm)`
+        returns: `"[5, 7, 10, 12]"`
+        `get_charts_string(sm, difficulty_labels=True)` 
+        returns: `"[Easy 5, Medium 7, Hard 10, Challenge 12]"`
     """
 
     def fn(c: Chart):
@@ -67,7 +70,8 @@ def extract(archive_path: Path) -> Path:
     Extracts an archive to a containing folder in the same directory.
     Returns the path to the containing folder.
 
-    Uses shutil.unpack_archive, and thus only supports the following formats:
+    Uses shutil.unpack_archive, and thus only supports the following
+    formats:
     `zip, tar, gztar, bztar, xztar`
     """
     dest = archive_path.with_suffix("")
@@ -85,7 +89,11 @@ def prompt_overwrite(item: str) -> bool:
     return Confirm.ask(f"Overwrite existing {item}?", default=True)
 
 
-def setup_working_dir(path_or_url: str, temp: Path, downloads: Optional[Path]) -> Path:
+def setup_working_dir(
+    path_or_url: str, 
+    temp: Path, 
+    downloads: Optional[Path]
+) -> Path:
     """
     Takes the supplied parameter for an add command and does any necessary
     extraction/downloading. Moves the directory to temp if it was downloaded
@@ -118,9 +126,9 @@ def setup_working_dir(path_or_url: str, temp: Path, downloads: Optional[Path]) -
 
 def download_file(url: str, downloads: Path) -> Path:
     """
-    Downloads a file from a URL to the downloads folder and returns a path to the downloaded file.
-    Processes Google drive links using gdown and attempts to download other files using requests.
-    Prints a progress bar to stderr.
+    Downloads a file from a URL to the downloads folder and returns a path to
+    the downloaded file. Processes Google drive links using gdown and attempts
+    to download other files using requests. Prints a progress bar to stderr.
     """
     # TODO: handle mega.nz links
     if "drive.google.com" in url or "drive.usercontent.google.com" in url:
@@ -144,16 +152,22 @@ def download_file(url: str, downloads: Path) -> Path:
         return dest
 
 
-def validate_response(r: requests.Response) -> None:
+def validate_response(
+    r: requests.Response, 
+    valid_content_types: list[str] = ["application/zip"]
+) -> None:
     """
     Validates a request response.
-    Raises an exception if the status code is not 200, if the request does not have
-    a content header, or if the Content-Type is not in valid_content_types
+
+    Raises an exception if the status code is not 200, if the request does not
+    have a content header, or if the Content-Type is not in 
+    `valid_content_types`
     """
-    # TODO: add support for more filetypes (remember to update get_download_filename)
-    valid_content_types = ["application/zip"]
+    # TODO: add support for more filetypes (and update get_download_filename)
     if r.status_code != 200:  # 200: OK
-        raise Exception(f"Unsuccessful request to {r.url} with status {r.status_code}")
+        raise Exception(
+            f"Unsuccessful request to {r.url} with status {r.status_code}"
+        )
     if "Content-Type" not in r.headers:
         raise Exception("No Content-Type header found")
     if r.headers["Content-Type"] not in valid_content_types:
@@ -162,8 +176,8 @@ def validate_response(r: requests.Response) -> None:
 
 def get_download_filename(r: requests.Response) -> str:
     """
-    Returns the filename from the response's Content-Disposition header, the url's
-    basename, or defaults to "download.zip"
+    Returns the filename from the response's Content-Disposition header, the
+    url's basename, or defaults to "download.zip"
     """
     if "Content-Disposition" in r.headers:
         return Path(pyrfc6266.parse_filename(r.headers["Content-Disposition"]))

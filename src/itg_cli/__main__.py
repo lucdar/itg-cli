@@ -27,7 +27,10 @@ cli = typer.Typer(no_args_is_help=True)
 def init_config(
     path: Annotated[Optional[Path], typer.Argument()] = DEFAULT_CONFIG_PATH,
 ):
-    """Write a config file with default values to the supplied directory or the default config path. Prompts to overwrite existing config if it exists."""
+    """
+    Write a config file with default values to the supplied directory or the
+    default config path. Prompts to overwrite existing config if it exists.
+    """
     if path.exists() and not prompt_overwrite("config with default"):
         print(f"[green]Keeping existing config file: [white]{path}")
         raise typer.Exit()
@@ -42,7 +45,9 @@ def init_config(
 
 @cli.command("add-pack")
 def add_pack(
-    path_or_url: Annotated[str, typer.Argument(help="path or URL to the pack to add")],
+    path_or_url: Annotated[str, typer.Argument(
+        help="path or URL to the pack to add"
+    )],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
     overwrite: OverwriteOption = None,
 ):
@@ -60,11 +65,15 @@ def add_pack(
 
 @cli.command("add-song")
 def add_song(
-    path_or_url: Annotated[str, typer.Argument(help="path or URL to the song to add")],
+    path_or_url: Annotated[str, typer.Argument(
+        help="path or URL to the song to add"
+    )],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
     overwrite: OverwriteOption = None,
 ):
-    """Add a song from a supplied link or path to your configured Singles pack."""
+    """
+    Add a song from a supplied link or path to your configured Singles pack.
+    """
     config = CLISettings(config_path)
     itg_cli.add_song(
         path_or_url,
@@ -81,14 +90,20 @@ def censor(
     path: Annotated[str, typer.Argument(help="path to the song to censor")],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
 ):
-    """Move a song in your packs folder to packs/.censored/Pack/Song, hiding it from players."""
+    """
+    Move a song in your packs folder to packs/.censored/Pack/Song, hiding it
+    from players.
+    """
     config = CLISettings(config_path)
     itg_cli.censor(Path(path), config.packs, config.cache)
 
 
 @cli.command()
 def uncensor(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
-    """Display a list of censored songs and prompts you to select one to uncensor."""
+    """
+    Display a list of censored songs and prompts you to select one to
+    uncensor.
+    """
     config = CLISettings(config_path)
     itg_cli.uncensor(config.packs)
 

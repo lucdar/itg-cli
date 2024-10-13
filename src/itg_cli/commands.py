@@ -27,23 +27,28 @@ def add_pack(
     Takes a path to a local directory or a path/url to an archive and adds the
     contained pack to `packs`. Supplied local files are not moved.
 
-    In the case of multiple valid pack directories (multiple folders containing
-    .sm files with different direct parents), a warning will be printed, and the
-    pack containing the most songs will be added.
+    In the case of multiple valid pack directories (multiple folders
+    containing .sm files with different direct parents), a warning will be
+    displayed, and the pack containing the most songs will be added.
 
-    If there is already an existing pack in `settings.packs` with the same name,
-    the user will be prompted to overwrite or keep the existing file. If the
-    `overwrite` kwarg is set to true, this check is skipped and the pack is
-    overwritten without this check.
+    If there is already an existing pack in `settings.packs` with the same
+    name, the user will be prompted to overwrite or keep the existing file. If
+    the `overwrite` kwarg is set to true, this check is skipped and the pack
+    is overwritten without this check.
     """
     with TemporaryDirectory() as temp_directory:
-        working_dir = setup_working_dir(path_or_url, Path(temp_directory), downloads)
+        working_dir = setup_working_dir(
+            path_or_url,
+            Path(temp_directory),
+            downloads
+        )
 
         # 2nd parent of a simfile path is a valid pack directory
         # pack_dir_counts stores the # of simfiles in each pack
         pack_dir_counts = Counter(
-            map(lambda p: p.parents[1], simfile_paths(working_dir))
+            p.parents[1] for p in simfile_paths(working_dir)
         )
+        
         if len(pack_dir_counts) == 0:
             raise Exception("No packs found.")
         elif len(pack_dir_counts) > 1:
@@ -52,9 +57,8 @@ def add_pack(
             for pack, count in packs_by_frequency:
                 print(f"{pack.relative_to(working_dir)} ({count} songs)")
             pack_path = packs_by_frequency[0][0]
-            print(
-                f"Selecting pack with the most songs: {pack_path.relative_to(working_dir)}"
-            )
+            rel_path = pack_path.relative_to(working_dir)
+            print(f"Selecting pack with the most songs: {rel_path}")
         else:
             pack_path, _ = pack_dir_counts.popitem()
 
@@ -77,12 +81,14 @@ def add_pack(
                 existing_pack = SimfilePack(dest)
                 existing_songs = list(existing_pack.simfiles())
                 diff = len(existing_songs) - len(songs)
+                prompt = "Prompt: Pack already exists with "
                 if diff > 0:
-                    print(f"Prompt: Pack already exists with {diff} fewer songs.")
+                    prompt += f"{diff} fewer songs."
                 elif diff < 0:
-                    print(f"Prompt: Pack already exists with {-diff} more songs.")
+                    prompt += f"{-diff} more songs."
                 else:  # difference == 0
-                    print("Prompt: Pack already exists with the same number of songs.")
+                    prompt += "the same number of songs."
+                print(prompt)
                 if not prompt_overwrite("pack"):
                     exit(1)
             shutil.rmtree(dest)
@@ -91,7 +97,7 @@ def add_pack(
         num_courses = 0
         courses_subfolder = courses.joinpath(pack.name)
         courses_subfolder.mkdir(exist_ok=True)
-        crs_parent_dirs = set(map(lambda p: p.parent, working_dir.rglob("*.crs")))
+        crs_parent_dirs = {p.parent for p in working_dir.rglob("*.crs")}
         for crs_parent_dir in crs_parent_dirs:
             for file in filter(Path.is_file, crs_parent_dir.iterdir()):
                 file.replace(courses_subfolder.joinpath(file.name))
@@ -100,11 +106,11 @@ def add_pack(
         # move pack to packs directory
         shutil.move(pack_path, dest)
 
-    # Print success message
-    if num_courses == 1:
-        print(f"Added {pack.name} with {len(songs)} songs and 1 course.")
-    else:
-        print(f"Added {pack.name} with {len(songs)} songs and {num_courses} courses.")
+    print(
+        f"Added {pack.name}",
+        f"with {len(songs)} songs",
+        f"and {num_courses} course(s)."
+    )
 
 
 def add_song(
@@ -128,8 +134,12 @@ def add_song(
     the song is overwritten without this check.
     """
     with TemporaryDirectory() as temp_directory:
-        working_dir = setup_working_dir(path_or_url, Path(temp_directory), downloads)
-        simfile_dirs = set(map(lambda p: p.parent, simfile_paths(working_dir)))
+        working_dir = setup_working_dir(
+            path_or_url,
+            Path(temp_directory),
+            downloads
+        )
+        simfile_dirs = {p.parent for p in simfile_paths(working_dir)}
 
         # Ensure only one simfile was supplied
         if len(simfile_dirs) == 1:
@@ -153,8 +163,8 @@ def add_song(
                 if delete_macos_files_flag:
                     delete_macos_files(dest)
                     delete_macos_files(simfile_root)
-                old = simfile.opendir(dest, strict=False)[0]
-                new = simfile.opendir(simfile_root, strict=False)[0]
+                old, _= simfile.opendir(dest, strict=False)[0]
+                new, _= simfile.opendir(simfile_root, strict=False)[0]
                 print_simfile_data(old, "Old Simfile")
                 print_simfile_data(new, "New Simfile")
                 if not prompt_overwrite("simfile"):
@@ -167,7 +177,7 @@ def add_song(
         shutil.move(simfile_root, dest)
     if delete_macos_files_flag:
         delete_macos_files(simfile_root)
-    sm = simfile.opendir(dest, strict=False)[0]
+    sm, _ = simfile.opendir(dest, strict=False)
     print(f"Added {sm.title} to {singles.name}.")
 
 
@@ -183,7 +193,7 @@ def censor(path: Path, packs: Path, cache: Path):
         raise Exception(f"Error: {str(path)} does not exist")
     if not path.is_relative_to(packs):
         raise Exception(
-            f"Supplied path ({path}) is not a subdirectory of settings.packs ({packs})"
+            f"Supplied path {path} is not a pack in {packs}"
         )
     try:
         sm, _ = simfile.opendir(path, strict=False)
@@ -204,9 +214,9 @@ def censor(path: Path, packs: Path, cache: Path):
 
 def uncensor(packs: Path):
     """
-    Lists the songs in `settings.censored` and prompts the user to choose one to
-    uncensor. The uncensored file will be moved back to its original location
-    in settings.packs.
+    Lists the songs in `settings.censored` and prompts the user to choose one
+    to uncensor. The uncensored file will be moved back to its original
+    location in settings.packs.
     """
     # TODO: make this command more module-friendly
     censored = packs / ".censored"
