@@ -84,7 +84,7 @@ def add_song(
     Add a song from a supplied link or path to your configured Singles pack.
     """
     config = CLISettings(config_path)
-    itg_cli.add_song(
+    sim, loc = itg_cli.add_song(
         path_or_url,
         config.singles,
         config.cache,
@@ -92,6 +92,7 @@ def add_song(
         overwrite=overwrite,
         delete_macos_files_flag=config.delete_macos_files,
     )
+    print(f"Added {sim.title} to {Path(loc).parents[1]}")
 
 
 @cli.command()

@@ -3,6 +3,7 @@ import simfile
 from collections import Counter
 from pathlib import Path
 from simfile.dir import SimfilePack
+from simfile.types import Simfile
 from tempfile import TemporaryDirectory
 from typing import Optional
 from itg_cli._utils import (
@@ -113,7 +114,7 @@ def add_song(
     downloads: Optional[Path] = None,
     overwrite: bool = False,
     delete_macos_files_flag: bool = False,
-) -> None:
+) -> tuple[Simfile, str]:
     """
     Takes a path to a local directory or a path/url to an archive and adds the
     contained song to `singles`. Supplied local files are not changed/moved.
@@ -125,6 +126,10 @@ def add_song(
     folder name, the user will be prompted to overwrite or keep the existing
     file. If the `overwrite` kwarg is set to true, this check is skipped and
     the song is overwritten without this check.
+
+    Returns:
+        a tuple containing the Simfile object of the added song and the path
+        to the .sm/.ssc containing the chart data.
     """
     with TemporaryDirectory() as temp_directory:
         working_dir = setup_working_dir(
@@ -170,8 +175,8 @@ def add_song(
         shutil.move(simfile_root, dest)
     if delete_macos_files_flag:
         delete_macos_files(simfile_root)
-    sm, _ = simfile.opendir(dest, strict=False)
-    print(f"Added {sm.title} to {singles.name}.")
+    
+    return simfile.opendir(dest, strict=False)
 
 
 def censor(path: Path, packs: Path, cache: Path) -> None:
