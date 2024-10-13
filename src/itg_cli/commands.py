@@ -7,7 +7,6 @@ from tempfile import TemporaryDirectory
 from typing import Optional
 from itg_cli._utils import (
     delete_macos_files,
-    get_charts_string,
     print_simfile_data,
     prompt_overwrite,
     setup_working_dir,
@@ -22,7 +21,7 @@ def add_pack(
     downloads: Optional[Path] = None,
     overwrite: bool = False,
     delete_macos_files_flag: bool = False,
-) -> None:
+) -> tuple[SimfilePack, int]:
     """
     Takes a path to a local directory or a path/url to an archive and adds the
     contained pack to `packs`. Supplied local files are not moved.
@@ -35,6 +34,10 @@ def add_pack(
     name, the user will be prompted to overwrite or keep the existing file. If
     the `overwrite` kwarg is set to true, this check is skipped and the pack
     is overwritten without this check.
+
+    Returns:
+        a tuple containing a `SimfilePack` object of the added pack and the
+        number of courses added.
     """
     with TemporaryDirectory() as temp_directory:
         working_dir = setup_working_dir(
@@ -67,11 +70,6 @@ def add_pack(
         pack = SimfilePack(pack_path)
         songs = list(pack.simfiles(strict=False))
 
-        # print pack metadata
-        print(f"{pack.name} contains {len(songs)} songs:")
-        for song in songs:
-            print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
-
         # check if pack already exists
         dest = packs.joinpath(pack_path.name)
         if dest.exists():
@@ -103,14 +101,9 @@ def add_pack(
                 file.replace(courses_subfolder.joinpath(file.name))
                 if file.suffix == ".crs":
                     num_courses += 1
-        # move pack to packs directory
+        
         shutil.move(pack_path, dest)
-
-    print(
-        f"Added {pack.name}",
-        f"with {len(songs)} songs",
-        f"and {num_courses} course(s)."
-    )
+        return SimfilePack(dest), num_courses
 
 
 def add_song(
@@ -120,7 +113,7 @@ def add_song(
     downloads: Optional[Path] = None,
     overwrite: bool = False,
     delete_macos_files_flag: bool = False,
-):
+) -> None:
     """
     Takes a path to a local directory or a path/url to an archive and adds the
     contained song to `singles`. Supplied local files are not changed/moved.
@@ -181,7 +174,7 @@ def add_song(
     print(f"Added {sm.title} to {singles.name}.")
 
 
-def censor(path: Path, packs: Path, cache: Path):
+def censor(path: Path, packs: Path, cache: Path) -> None:
     """
     Moves the song in the supplied `path` to `packs`/.censored, hiding it from
     players. `path` must be a subdirectory of `packs` or an exception
@@ -212,7 +205,7 @@ def censor(path: Path, packs: Path, cache: Path):
     print(f"Censored {sm.title} from {path.parent.name}.")
 
 
-def uncensor(packs: Path):
+def uncensor(packs: Path) -> None:
     """
     Lists the songs in `settings.censored` and prompts the user to choose one
     to uncensor. The uncensored file will be moved back to its original

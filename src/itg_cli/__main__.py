@@ -6,7 +6,7 @@ from rich import panel, print
 from typing import Annotated, Optional, TypeAlias
 from itg_cli import __version__
 from itg_cli._config import CLISettings
-from itg_cli._utils import prompt_overwrite
+from itg_cli._utils import get_charts_string, prompt_overwrite
 
 DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
 ConfigOption: TypeAlias = Annotated[
@@ -53,7 +53,7 @@ def add_pack(
 ):
     """Add a pack from a supplied link or path."""
     config = CLISettings(config_path)
-    itg_cli.add_pack(
+    pack, num_courses = itg_cli.add_pack(
         path_or_url,
         config.packs,
         config.courses,
@@ -61,6 +61,15 @@ def add_pack(
         overwrite=overwrite,
         delete_macos_files_flag=config.delete_macos_files,
     )
+    songs = pack.simfiles(strict=False)
+    # print pack metadata
+    print(
+        f"Added {pack.name}",
+        f"with {len(songs)} songs",
+        f"and {num_courses} course(s)."
+    )
+    for song in songs:
+        print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
 
 
 @cli.command("add-song")
