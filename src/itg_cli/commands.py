@@ -42,9 +42,7 @@ def add_pack(
     """
     with TemporaryDirectory() as temp_directory:
         working_dir = setup_working_dir(
-            path_or_url,
-            Path(temp_directory),
-            downloads
+            path_or_url, Path(temp_directory), downloads
         )
 
         # 2nd parent of a simfile path is a valid pack directory
@@ -52,7 +50,7 @@ def add_pack(
         pack_dir_counts = Counter(
             p.parents[1] for p in simfile_paths(working_dir)
         )
-        
+
         if len(pack_dir_counts) == 0:
             raise Exception("No packs found.")
         elif len(pack_dir_counts) > 1:
@@ -102,7 +100,7 @@ def add_pack(
                 file.replace(courses_subfolder.joinpath(file.name))
                 if file.suffix == ".crs":
                     num_courses += 1
-        
+
         shutil.move(pack_path, dest)
         return SimfilePack(dest), num_courses
 
@@ -133,9 +131,7 @@ def add_song(
     """
     with TemporaryDirectory() as temp_directory:
         working_dir = setup_working_dir(
-            path_or_url,
-            Path(temp_directory),
-            downloads
+            path_or_url, Path(temp_directory), downloads
         )
         simfile_dirs = {p.parent for p in simfile_paths(working_dir)}
 
@@ -161,8 +157,8 @@ def add_song(
                 if delete_macos_files_flag:
                     delete_macos_files(dest)
                     delete_macos_files(simfile_root)
-                old, _= simfile.opendir(dest, strict=False)[0]
-                new, _= simfile.opendir(simfile_root, strict=False)[0]
+                old, _ = simfile.opendir(dest, strict=False)
+                new, _ = simfile.opendir(simfile_root, strict=False)
                 print_simfile_data(old, "Old Simfile")
                 print_simfile_data(new, "New Simfile")
                 if not prompt_overwrite("simfile"):
@@ -175,7 +171,7 @@ def add_song(
         shutil.move(simfile_root, dest)
     if delete_macos_files_flag:
         delete_macos_files(simfile_root)
-    
+
     return simfile.opendir(dest, strict=False)
 
 
@@ -190,9 +186,7 @@ def censor(path: Path, packs: Path, cache: Path) -> None:
     if not path.exists():
         raise Exception(f"Error: {str(path)} does not exist")
     if not path.is_relative_to(packs):
-        raise Exception(
-            f"Supplied path {path} is not a pack in {packs}"
-        )
+        raise Exception(f"Supplied path {path} is not a pack in {packs}")
     try:
         sm, _ = simfile.opendir(path, strict=False)
     except Exception as e:

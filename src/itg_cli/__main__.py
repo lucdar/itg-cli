@@ -1,12 +1,17 @@
 import sys
+from pygments import highlight
 import typer
 import itg_cli
 from pathlib import Path
 from rich import panel, print
+from rich.columns import Columns
+from rich.console import Console
 from typing import Annotated, Optional, TypeAlias
 from itg_cli import __version__
 from itg_cli._config import CLISettings
 from itg_cli._utils import get_charts_string, prompt_overwrite
+
+no_highlights = Console(highlight=False)
 
 DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
 ConfigOption: TypeAlias = Annotated[
@@ -45,9 +50,9 @@ def init_config(
 
 @cli.command("add-pack")
 def add_pack(
-    path_or_url: Annotated[str, typer.Argument(
-        help="path or URL to the pack to add"
-    )],
+    path_or_url: Annotated[
+        str, typer.Argument(help="path or URL to the pack to add")
+    ],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
     overwrite: OverwriteOption = None,
 ):
@@ -61,22 +66,31 @@ def add_pack(
         overwrite=overwrite,
         delete_macos_files_flag=config.delete_macos_files,
     )
-    songs = pack.simfiles(strict=False)
+    songs = list(pack.simfiles(strict=False))
     # print pack metadata
     print(
-        f"Added {pack.name}",
-        f"with {len(songs)} songs",
-        f"and {num_courses} course(s)."
+        f"\nAdded [bold green]{pack.name}[/bold green]",
+        f"with [blue]{len(songs)}[/blue] songs",
+        f"and [blue]{num_courses}[/blue] {
+            "courses" if num_courses != 1 else "course"
+        }.",
     )
-    for song in songs:
-        print(f"  {get_charts_string(song)} {song.title} ({song.artist})")
+    no_highlights.print(
+        Columns(
+            (
+                f"[bold]{get_charts_string(song)}[/] {song.title}"
+                for song in songs
+            ),
+            expand=True,
+        ),
+    )
 
 
 @cli.command("add-song")
 def add_song(
-    path_or_url: Annotated[str, typer.Argument(
-        help="path or URL to the song to add"
-    )],
+    path_or_url: Annotated[
+        str, typer.Argument(help="path or URL to the song to add")
+    ],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
     overwrite: OverwriteOption = None,
 ):
@@ -92,7 +106,9 @@ def add_song(
         overwrite=overwrite,
         delete_macos_files_flag=config.delete_macos_files,
     )
-    print(f"Added {sim.title} to {Path(loc).parents[1]}")
+    print(
+        f"\nAdded [bold green]{sim.title}[/bold green] to {Path(loc).parents[1].name}"
+    )
 
 
 @cli.command()
