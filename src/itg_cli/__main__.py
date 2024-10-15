@@ -6,7 +6,10 @@ from pathlib import Path
 from rich import panel, print
 from rich.columns import Columns
 from rich.console import Console
-from typing import Annotated, Optional, TypeAlias
+from rich.prompt import Confirm
+from simfile.dir import SimfilePack
+from simfile.types import Simfile
+from typing import Annotated, Callable, Optional, TypeAlias, TypeVar
 from itg_cli import __version__
 from itg_cli._config import CLISettings
 from itg_cli._utils import get_charts_string, prompt_overwrite
@@ -14,6 +17,46 @@ from itg_cli._utils import get_charts_string, prompt_overwrite
 DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
 
 no_highlights = Console(highlight=False)
+
+
+## Overwrite Handlers ##
+T = TypeVar("T")
+GenericOverwriteHandler: TypeAlias = Callable[[T, T], bool]
+
+
+def or_callback(
+    flag: Optional[bool], callback: GenericOverwriteHandler
+) -> GenericOverwriteHandler:
+    """
+    Returns `callback` if `flag` is None, otherwise returns a function that
+    always returns `flag`
+    """
+    return callback if flag is None else lambda _a, _b: flag
+
+
+def pack_overwrite_handler(new: SimfilePack, old: SimfilePack) -> bool:
+    new_simfiles = list(new.simfiles(strict=False))
+    old_simfiles = list(old.simfiles(strict=False))
+    diff = len(old_simfiles) - len(new_simfiles)
+    prompt = f"[bold]{new.name}[/bold] already exists (with "
+    if diff > 0:
+        prompt += f"{diff} fewer songs)."
+    elif diff < 0:
+        prompt += f"{-diff} more songs)."
+    else:
+        prompt += "the same number of songs)."
+    no_highlights.print(prompt)
+    return Confirm.ask("Overwrite existing pack?", default=True)
+
+
+def song_overwrite_handler(
+    new: tuple[Simfile, str], old: tuple[Simfile, str]
+) -> bool:
+    old_path = Path(old[1])
+    pack_and_song_folder = old_path.parent.relative_to(old_path.parents[2])
+    no_highlights.print(f"[bold]{pack_and_song_folder}[/] already exists.")
+    return Confirm.ask("Overwrite existing simfile?", default=True)
+
 
 ## CLI Commands ##
 cli = typer.Typer(no_args_is_help=True)
@@ -42,7 +85,9 @@ def init_config(
     if (
         path.exists()
         and not overwrite
-        and not prompt_overwrite("config with default")
+        and not Confirm.ask(
+            f"Overwrite existing config with default?", default=True
+        )
     ):
         print(f"[green]Keeping existing config file: [bright_white]{path}")
         raise typer.Exit()
@@ -70,7 +115,7 @@ def add_pack(
         config.packs,
         config.courses,
         downloads=config.downloads,
-        overwrite=overwrite,
+        overwrite=or_callback(overwrite, pack_overwrite_handler),
         delete_macos_files_flag=config.delete_macos_files,
     )
     songs = list(pack.simfiles(strict=False))
@@ -110,7 +155,7 @@ def add_song(
         config.singles,
         config.cache,
         downloads=config.downloads,
-        overwrite=overwrite,
+        overwrite=or_callback(overwrite, song_overwrite_handler),
         delete_macos_files_flag=config.delete_macos_files,
     )
     print(

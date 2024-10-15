@@ -5,14 +5,17 @@ from pathlib import Path
 from simfile.dir import SimfilePack
 from simfile.types import Simfile
 from tempfile import TemporaryDirectory
-from typing import Optional
+from typing import Callable, Optional, TypeAlias
 from itg_cli._utils import (
     delete_macos_files,
-    print_simfile_data,
-    prompt_overwrite,
     setup_working_dir,
     simfile_paths,
 )
+
+PackOverwriteHandler: TypeAlias = Callable[[SimfilePack, SimfilePack], bool]
+SongOverwriteHandler: TypeAlias = Callable[
+    [tuple[Simfile, str], tuple[Simfile, str]], bool
+]
 
 
 def add_pack(
@@ -20,7 +23,7 @@ def add_pack(
     packs: Path,
     courses: Path,
     downloads: Optional[Path] = None,
-    overwrite: bool = False,
+    overwrite: PackOverwriteHandler = lambda _new, _old: False,
     delete_macos_files_flag: bool = False,
 ) -> tuple[SimfilePack, int]:
     """
@@ -58,7 +61,7 @@ def add_pack(
             packs_by_frequency = pack_dir_counts.most_common()
             for pack, count in packs_by_frequency:
                 print(f"{pack.relative_to(working_dir)} ({count} songs)")
-            pack_path = packs_by_frequency[0][0]
+            pack_path, _ = packs_by_frequency[0]
             rel_path = pack_path.relative_to(working_dir)
             print(f"Selecting pack with the most songs: {rel_path}")
         else:
@@ -72,22 +75,10 @@ def add_pack(
         # check if pack already exists
         dest = packs.joinpath(pack_path.name)
         if dest.exists():
-            if not overwrite:
-                if delete_macos_files_flag:
-                    delete_macos_files(dest)
-                existing_pack = SimfilePack(dest)
-                existing_songs = list(existing_pack.simfiles())
-                diff = len(existing_songs) - len(songs)
-                prompt = "Prompt: Pack already exists with "
-                if diff > 0:
-                    prompt += f"{diff} fewer songs."
-                elif diff < 0:
-                    prompt += f"{-diff} more songs."
-                else:  # difference == 0
-                    prompt += "the same number of songs."
-                print(prompt)
-                if not prompt_overwrite("pack"):
-                    exit(1)
+            if delete_macos_files_flag:
+                delete_macos_files(dest)
+            if not overwrite(pack, SimfilePack(dest)):
+                exit(1)
             shutil.rmtree(dest)
 
         # look for a Courses folder countaining .crs files
@@ -110,7 +101,7 @@ def add_song(
     singles: Path,
     cache: Path,
     downloads: Optional[Path] = None,
-    overwrite: bool = False,
+    overwrite: SongOverwriteHandler = lambda _new, _old: False,
     delete_macos_files_flag: bool = False,
 ) -> tuple[Simfile, str]:
     """
@@ -150,23 +141,21 @@ def add_song(
 
         dest = singles.joinpath(simfile_root.name)
 
-        # Overwrite if needed
         if dest.exists():
-            if not overwrite:
-                print("Prompt: A folder with the same name already exists.")
-                if delete_macos_files_flag:
-                    delete_macos_files(dest)
-                    delete_macos_files(simfile_root)
-                old, _ = simfile.opendir(dest, strict=False)
-                new, _ = simfile.opendir(simfile_root, strict=False)
-                print_simfile_data(old, "Old Simfile")
-                print_simfile_data(new, "New Simfile")
-                if not prompt_overwrite("simfile"):
-                    exit(1)
+            if delete_macos_files_flag:
+                delete_macos_files(simfile_root)
+                delete_macos_files(dest)
+            new = simfile.opendir(simfile_root, strict=False)
+            old = simfile.opendir(dest, strict=False)
+            if not overwrite(new, old):
+                exit(1)
             shutil.rmtree(dest)
             # Delete cache entry if it exists
-            cache_entry_name = f"Songs_{singles.name}_{simfile_root.name}"
-            cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
+            cache_entry = "_".join(
+                [singles.parent.name, singles.name, simfile_root.name]
+            )
+            cache.joinpath("Songs", cache_entry).unlink(missing_ok=True)
+
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(simfile_root, dest)
     if delete_macos_files_flag:

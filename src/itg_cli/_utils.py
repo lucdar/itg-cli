@@ -26,18 +26,6 @@ def simfile_paths(path: Path) -> Iterable[Path]:
     return filter(path_filter, chain(sms, sscs))
 
 
-def print_simfile_data(sm: Simfile, label: str = "data") -> None:
-    """Prints simfile data"""
-    print(
-        f"### {label} ###",
-        "  Title: " + sm.title,
-        " Artist: " + sm.artist,
-        " Meters: " + str(get_charts_string(sm)),
-        sep="\n",
-        end="\n\n",
-    )
-
-
 def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     """
     Returns the string representation of chart meters of a simfile (with
@@ -47,7 +35,7 @@ def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
     Example:
         `get_charts_string(sm)`
         returns: `"[5, 7, 10, 12]"`
-        `get_charts_string(sm, difficulty_labels=True)` 
+        `get_charts_string(sm, difficulty_labels=True)`
         returns: `"[Easy 5, Medium 7, Hard 10, Challenge 12]"`
     """
 
@@ -90,9 +78,7 @@ def prompt_overwrite(item: str) -> bool:
 
 
 def setup_working_dir(
-    path_or_url: str, 
-    temp: Path, 
-    downloads: Optional[Path]
+    path_or_url: str, temp: Path, downloads: Optional[Path]
 ) -> Path:
     """
     Takes the supplied parameter for an add command and does any necessary
@@ -153,14 +139,13 @@ def download_file(url: str, downloads: Path) -> Path:
 
 
 def validate_response(
-    r: requests.Response, 
-    valid_content_types: list[str] = ["application/zip"]
+    r: requests.Response, valid_content_types: list[str] = ["application/zip"]
 ) -> None:
     """
     Validates a request response.
 
     Raises an exception if the status code is not 200, if the request does not
-    have a content header, or if the Content-Type is not in 
+    have a content header, or if the Content-Type is not in
     `valid_content_types`
     """
     # TODO: add support for more filetypes (and update get_download_filename)
