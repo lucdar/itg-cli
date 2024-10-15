@@ -11,9 +11,12 @@ from itg_cli import __version__
 from itg_cli._config import CLISettings
 from itg_cli._utils import get_charts_string, prompt_overwrite
 
+DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
+
 no_highlights = Console(highlight=False)
 
-DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
+## CLI Commands ##
+cli = typer.Typer(no_args_is_help=True)
 ConfigOption: TypeAlias = Annotated[
     Path, typer.Option("--config", help="path to a .toml config file")
 ]
@@ -25,24 +28,28 @@ OverwriteOption: TypeAlias = Annotated[
         help="automatically overwrite without confirming",
     ),
 ]
-cli = typer.Typer(no_args_is_help=True)
 
 
 @cli.command("init-config")
 def init_config(
     path: Annotated[Optional[Path], typer.Argument()] = DEFAULT_CONFIG_PATH,
+    overwrite: OverwriteOption = False,
 ):
     """
     Write a config file with default values to the supplied directory or the
     default config path. Prompts to overwrite existing config if it exists.
     """
-    if path.exists() and not prompt_overwrite("config with default"):
-        print(f"[green]Keeping existing config file: [white]{path}")
+    if (
+        path.exists()
+        and not overwrite
+        and not prompt_overwrite("config with default")
+    ):
+        print(f"[green]Keeping existing config file: [bright_white]{path}")
         raise typer.Exit()
     cfg = CLISettings(path, write_default=True)
     print(
         panel.Panel(
-            f"Initialized config: [white]{str(cfg.location)}",
+            f"Initialized config: [bright_white]{str(cfg.location)}",
             style="green",
         )
     )
@@ -69,9 +76,9 @@ def add_pack(
     songs = list(pack.simfiles(strict=False))
     # print pack metadata
     print(
-        f"\nAdded [bold green]{pack.name}[/bold green]",
-        f"with [blue]{len(songs)}[/blue] songs",
-        f"and [blue]{num_courses}[/blue] {
+        f"\nAdded [bold green]{pack.name}[/]",
+        f"with [blue]{len(songs)}[/] songs",
+        f"and [blue]{num_courses}[/] {
             "courses" if num_courses != 1 else "course"
         }.",
     )
@@ -107,7 +114,8 @@ def add_song(
         delete_macos_files_flag=config.delete_macos_files,
     )
     print(
-        f"\nAdded [bold green]{sim.title}[/bold green] to {Path(loc).parents[1].name}"
+        f"\nAdded [bold green]{sim.title}[/]",
+        f"to {Path(loc).parents[1].name}",
     )
 
 
