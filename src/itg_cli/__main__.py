@@ -153,7 +153,7 @@ def add_song(
     sim, loc = itg_cli.add_song(
         path_or_url,
         config.singles,
-        config.cache,
+        cache=config.cache,
         downloads=config.downloads,
         overwrite=or_callback(overwrite, song_overwrite_handler),
         delete_macos_files_flag=config.delete_macos_files,

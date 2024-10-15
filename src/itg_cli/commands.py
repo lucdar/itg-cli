@@ -99,7 +99,7 @@ def add_pack(
 def add_song(
     path_or_url: str,
     singles: Path,
-    cache: Path,
+    cache: Optional[Path] = None,
     downloads: Optional[Path] = None,
     overwrite: SongOverwriteHandler = lambda _new, _old: False,
     delete_macos_files_flag: bool = False,
@@ -150,17 +150,18 @@ def add_song(
             if not overwrite(new, old):
                 exit(1)
             shutil.rmtree(dest)
-            # Delete cache entry if it exists
-            cache_entry = "_".join(
-                [singles.parent.name, singles.name, simfile_root.name]
-            )
-            cache.joinpath("Songs", cache_entry).unlink(missing_ok=True)
+            # Delete cache entry if cache is set
+            if cache is not None:
+                cache_entry = "_".join(
+                    [singles.parent.name, singles.name, simfile_root.name]
+                )
+                cache.joinpath("Songs", cache_entry).unlink(missing_ok=True)
 
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(simfile_root, dest)
+
     if delete_macos_files_flag:
         delete_macos_files(simfile_root)
-
     return simfile.opendir(dest, strict=False)
 
 
