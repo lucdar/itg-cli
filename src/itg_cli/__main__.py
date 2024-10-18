@@ -3,9 +3,10 @@ from pygments import highlight
 import typer
 import itg_cli
 from pathlib import Path
-from rich import panel, print
+from rich import print
 from rich.columns import Columns
 from rich.console import Console
+from rich.panel import Panel
 from rich.prompt import Confirm
 from simfile.dir import SimfilePack
 from simfile.types import Simfile
@@ -93,7 +94,7 @@ def init_config(
         raise typer.Exit()
     cfg = CLISettings(path, write_default=True)
     print(
-        panel.Panel(
+        Panel(
             f"Initialized config: [bright_white]{str(cfg.location)}",
             style="green",
         )
@@ -120,22 +121,20 @@ def add_pack(
     )
     songs = list(pack.simfiles(strict=False))
     # print pack metadata
-    print(
-        f"\nAdded [bold green]{pack.name}[/]",
-        f"with [blue]{len(songs)}[/] songs",
-        f"and [blue]{num_courses}[/] {
-            "courses" if num_courses != 1 else "course"
-        }.",
+    title = " ".join(
+        (
+            f"\nAdded [bold green]{pack.name}[/]",
+            f"with [blue]{len(songs)}[/] songs",
+            f"and [blue]{num_courses}[/] {
+                "courses" if num_courses != 1 else "course"
+            }",
+        )
     )
-    no_highlights.print(
-        Columns(
-            (
-                f"[bold]{get_charts_string(song)}[/] {song.title}"
-                for song in songs
-            ),
-            expand=True,
-        ),
+    columns = Columns(
+        (f"[bold]{get_charts_string(song)}[/] {song.title}" for song in songs),
+        expand=True,
     )
+    no_highlights.print(Panel(columns, title=title))
 
 
 @cli.command("add-song")
@@ -150,7 +149,7 @@ def add_song(
     Add a song from a supplied link or path to your configured Singles pack.
     """
     config = CLISettings(config_path)
-    sim, loc = itg_cli.add_song(
+    sf, loc = itg_cli.add_song(
         path_or_url,
         config.singles,
         cache=config.cache,
@@ -158,10 +157,25 @@ def add_song(
         overwrite=or_callback(overwrite, song_overwrite_handler),
         delete_macos_files_flag=config.delete_macos_files,
     )
-    print(
-        f"\nAdded [bold green]{sim.title}[/]",
-        f"to {Path(loc).parents[1].name}",
+    title = " ".join(
+        (
+            f"Added [bold green]{sf.title}[/]",
+            f"to {Path(loc).parents[1].name}",
+        )
     )
+    content = "\n".join(
+        (
+            f" Title: [bold]{sf.title}[/]",
+            f"Artist: [bold]{sf.artist}[/]",
+            f"Charts: [bold]{
+                "\n        ".join(
+                    [f"[blue]{c.meter}[/] {c.description}" for c in sf.charts]
+                )
+            }[/]",
+        )
+    )
+
+    no_highlights.print(Panel(content, title=title))
 
 
 @cli.command()
