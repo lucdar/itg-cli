@@ -98,7 +98,7 @@ def setup_working_dir(
     else:
         path = Path(path_or_url).absolute()
     if not path.exists():
-        raise Exception("Path does not exist:", str(path))
+        raise FileNotFoundError("File does not exist:", str(path))
     if not path.is_dir():
         path = extract(path)
         extracted = True
