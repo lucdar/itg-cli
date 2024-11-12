@@ -211,7 +211,7 @@ def add_song_command(
     no_highlights.print(Panel(content, title=title, expand=False))
 
 
-@cli.command()
+@cli.command("censor")
 def censor_command(
     path: Annotated[str, typer.Argument(help="path to the song to censor")],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
@@ -222,17 +222,18 @@ def censor_command(
     """
     config = CLISettings(config_path)
     sm = censor(Path(path), config.packs, config.cache)
-    print(f"Censored {sm.title}.")
+    no_highlights.print(f"Censored [bold]{sm.title}.")
 
 
-@cli.command()
+@cli.command("uncensor")
 def uncensor_command(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
     """
     Display a list of censored songs and prompts you to select one to
     uncensor.
     """
     config = CLISettings(config_path)
-    uncensor(config.packs)
+    sm = uncensor(config.packs)
+    no_highlights.print(f"Uncensored [bold]{sm.title}.")
 
 
 if __name__ == "__main__":

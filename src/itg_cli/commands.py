@@ -16,12 +16,15 @@ PackOverwriteHandler: TypeAlias = Callable[[SimfilePack, SimfilePack], bool]
 SongOverwriteHandler: TypeAlias = Callable[
     [tuple[Simfile, str], tuple[Simfile, str]], bool
 ]
+UncensorPicker: TypeAlias = Callable[[list[tuple[Simfile, str]]], int]
 
 
 class OverwriteException(Exception):
     """Rasied when an existing pack or simfile is not overwritten."""
 
-    pass
+
+class UncensorException(Exception):
+    """Raised when there are no songs to uncensor"""
 
 
 def add_pack(
@@ -197,37 +200,55 @@ def censor(path: Path, packs: Path, cache: Path) -> Simfile:
     return sm
 
 
-def uncensor(packs: Path) -> None:
+def get_censored(packs: Path) -> list[tuple[Simfile, str]]:
     """
-    Lists the songs in `settings.censored` and prompts the user to choose one
-    to uncensor. The uncensored file will be moved back to its original
-    location in settings.packs.
+    Returns the contents of `packs/.censored` as a list of (`simfile`, `path`)
+    pairs where `path` is the path to the sm/ssc file. (Each element is the
+    result of a call to simfile.opendir)
     """
-    # TODO: make this command more module-friendly
+    out = []
     censored = packs / ".censored"
-    simfile_paths: list[Path] = []
     for pack in filter(Path.is_dir, censored.iterdir()):
         for simfile_path in filter(Path.is_dir, pack.iterdir()):
-            sm, _ = simfile.opendir(simfile_path)
-            simfile_paths.append(simfile_path)
-            print(f"{len(simfile_paths)}. {sm.title} ({pack.name})")
-    if len(simfile_paths) == 0:
-        print("No censored songs")
-        exit()
+            out.append(simfile.opendir(simfile_path, strict=False))
+    return out
 
-    print(f"Select a song to uncensor (1-{len(simfile_paths)}): ", end="")
+
+def _default_uncensor_picker(censored: list[tuple[Simfile, str]]) -> int:
+    """
+    Prints a numbered list of the provided censored packs and prompts the user
+    to select one to be uncensored. Returns the index of the selected song.
+    """
+    for i, (sm, path) in enumerate(censored, start=1):
+        pack = Path(path).parents[1].name
+        print(f"{i}. {sm.title} ({pack})")
+    print(f"Select a song to uncensor (1-{len(censored)}): ", end="")
     while True:
         user_input = input()
-        choice = int(user_input) if user_input.isdigit() else 0
-        if choice - 1 in range(len(simfile_paths)):
-            break
-        else:
+        choice = int(user_input) - 1 if user_input.isdigit() else -1
+        if choice not in range(len(censored)):
             print("Invalid choice. Please choose again.")
+            continue
+        break
+    return choice
 
-    chosen_path = simfile_paths[choice - 1]
-    pack_and_song = chosen_path.relative_to(censored)
+
+def uncensor(
+    packs: Path, picker: UncensorPicker = _default_uncensor_picker
+) -> Simfile:
+    """
+    Gets the censored songs and passes them to `picker` which returns an index
+    of the song to uncensor. The picked simfile will be moved back to its
+    original location in `packs` and returned.
+
+    If there are no censored songs, raises an UncensorException.
+    """
+    censored = get_censored(packs)
+    if len(censored) == 0:
+        raise UncensorException("No censored songs.")
+    chosen_path = Path(censored[picker(censored)][1]).parent
+    pack_and_song = chosen_path.relative_to(packs / ".censored")
     destination = packs.joinpath(pack_and_song)
     shutil.move(chosen_path, destination)
 
-    sm, _ = simfile.opendir(destination)
-    print(f"Uncensored {sm.title} from {destination.parent.name}.")
+    return simfile.opendir(destination)[0]
