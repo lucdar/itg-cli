@@ -97,6 +97,7 @@ def init_config(
         Panel(
             f"Initialized config: [bright_white]{str(cfg.location)}",
             style="green",
+            expand=False,
         )
     )
 
@@ -168,14 +169,14 @@ def add_song(
             f" Title: [bold]{sf.title}[/]",
             f"Artist: [bold]{sf.artist}[/]",
             f"Charts: [bold]{
-                "\n        ".join(
+                ("\n" + " " * 8).join(
                     [f"[blue]{c.meter}[/] {c.description}" for c in sf.charts]
                 )
             }[/]",
         )
     )
 
-    no_highlights.print(Panel(content, title=title))
+    no_highlights.print(Panel(content, title=title, expand=False))
 
 
 @cli.command()
