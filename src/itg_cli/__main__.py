@@ -59,7 +59,7 @@ def song_overwrite_handler(
     return Confirm.ask("Overwrite existing simfile?", default=True)
 
 
-## CLI Commands ##
+## Typer Setup ##
 cli = typer.Typer(no_args_is_help=True)
 ConfigOption: TypeAlias = Annotated[
     Path, typer.Option("--config", help="path to a .toml config file")
@@ -74,6 +74,31 @@ OverwriteOption: TypeAlias = Annotated[
 ]
 
 
+## Version Flag ##
+def version_callback(run: bool):
+    if run:
+        print(f"itg-cli [white][bold]{__version__}")
+        raise typer.Exit()
+
+
+@cli.callback()
+def typer_entry(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            callback=version_callback,
+            is_eager=True,
+            help="Display the version and exit.",
+        ),
+    ] = False,
+):
+    # Automatically create default config if it doesn't exist and none supplied
+    if not DEFAULT_CONFIG_PATH.exists() and "init-config" not in sys.argv:
+        init_config_command(DEFAULT_CONFIG_PATH)
+
+
+## CLI Commands ##
 @cli.command("init-config")
 def init_config_command(
     path: Annotated[Optional[Path], typer.Argument()] = DEFAULT_CONFIG_PATH,
@@ -207,29 +232,6 @@ def uncensor_command(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
     """
     config = CLISettings(config_path)
     uncensor(config.packs)
-
-
-def version_callback(run: bool):
-    if run:
-        print(f"itg-cli [white][bold]{__version__}")
-        raise typer.Exit()
-
-
-@cli.callback()
-def typer_entry(
-    version: Annotated[
-        bool,
-        typer.Option(
-            "--version",
-            callback=version_callback,
-            is_eager=True,
-            help="Display the version and exit.",
-        ),
-    ] = False,
-):
-    # Check config and create default config if none supplied
-    if "init-config" not in sys.argv and not DEFAULT_CONFIG_PATH.exists():
-        init_config_command(DEFAULT_CONFIG_PATH)
 
 
 if __name__ == "__main__":
