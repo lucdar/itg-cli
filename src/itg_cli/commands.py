@@ -18,6 +18,12 @@ SongOverwriteHandler: TypeAlias = Callable[
 ]
 
 
+class OverwriteException(Exception):
+    """Rasied when an existing pack or simfile is not overwritten."""
+
+    pass
+
+
 def add_pack(
     path_or_url: str,
     packs: Path,
@@ -34,10 +40,10 @@ def add_pack(
     containing .sm files with different direct parents), a warning will be
     displayed, and the pack containing the most songs will be added.
 
-    If there is already an existing pack in `settings.packs` with the same
-    name, the user will be prompted to overwrite or keep the existing file. If
-    the `overwrite` kwarg is set to true, this check is skipped and the pack
-    is overwritten without this check.
+    If there is already an existing pack in `packs` with the same
+    folder name, the supplied `overwrite` function is called on the new and old
+    SimfilePacks. If `overwrite` returns true, the old pack is overwritten by the
+    supplied pack; if false, an OverwriteException is raised.
 
     Returns:
         a tuple containing a `SimfilePack` object of the added pack and the
@@ -78,7 +84,7 @@ def add_pack(
             if delete_macos_files_flag:
                 delete_macos_files(dest)
             if not overwrite(pack, SimfilePack(dest)):
-                exit(1)
+                raise OverwriteException("Pack already exists.")
             shutil.rmtree(dest)
 
         # look for a Courses folder countaining .crs files
@@ -111,10 +117,10 @@ def add_song(
     In the case of multiple valid songs (multiple folders containing
     .sm files), an exception will be raised.
 
-    If there is already an existing song in `settings.singles` with the same
-    folder name, the user will be prompted to overwrite or keep the existing
-    file. If the `overwrite` kwarg is set to true, this check is skipped and
-    the song is overwritten without this check.
+    If there is already an existing song in `singles` with the same
+    folder name, the supplied `overwrite` function is called on the new and old
+    simfiles. If `overwrite` returns true, the old song is overwritten by the
+    supplied song; if false, an OverwriteException is raised.
 
     Returns:
         a tuple containing the Simfile object of the added song and the path
@@ -148,7 +154,7 @@ def add_song(
             new = simfile.opendir(simfile_root, strict=False)
             old = simfile.opendir(dest, strict=False)
             if not overwrite(new, old):
-                exit(1)
+                raise OverwriteException("Simfile already exists.")
             shutil.rmtree(dest)
             # Delete cache entry if cache is set
             if cache is not None:

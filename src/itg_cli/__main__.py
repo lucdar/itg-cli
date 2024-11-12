@@ -13,7 +13,7 @@ from simfile.types import Simfile
 from typing import Annotated, Callable, Optional, TypeAlias, TypeVar
 from itg_cli import __version__
 from itg_cli._config import CLISettings
-from itg_cli._utils import get_charts_string, prompt_overwrite
+from itg_cli._utils import get_charts_string
 
 DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
 
@@ -112,14 +112,18 @@ def add_pack(
 ):
     """Add a pack from a supplied link or path."""
     config = CLISettings(config_path)
-    pack, num_courses = itg_cli.add_pack(
-        path_or_url,
-        config.packs,
-        config.courses,
-        downloads=config.downloads,
-        overwrite=or_callback(overwrite, pack_overwrite_handler),
-        delete_macos_files_flag=config.delete_macos_files,
-    )
+    try:
+        pack, num_courses = itg_cli.add_pack(
+            path_or_url,
+            config.packs,
+            config.courses,
+            downloads=config.downloads,
+            overwrite=or_callback(overwrite, pack_overwrite_handler),
+            delete_macos_files_flag=config.delete_macos_files,
+        )
+    except itg_cli.OverwriteException:
+        no_highlights.print("Keeping old pack.")
+        typer.Exit(1)
     songs = list(pack.simfiles(strict=False))
     # print pack metadata
     title = " ".join(
@@ -150,14 +154,18 @@ def add_song(
     Add a song from a supplied link or path to your configured Singles pack.
     """
     config = CLISettings(config_path)
-    sf, loc = itg_cli.add_song(
-        path_or_url,
-        config.singles,
-        cache=config.cache,
-        downloads=config.downloads,
-        overwrite=or_callback(overwrite, song_overwrite_handler),
-        delete_macos_files_flag=config.delete_macos_files,
-    )
+    try:
+        sf, loc = itg_cli.add_song(
+            path_or_url,
+            config.singles,
+            cache=config.cache,
+            downloads=config.downloads,
+            overwrite=or_callback(overwrite, song_overwrite_handler),
+            delete_macos_files_flag=config.delete_macos_files,
+        )
+    except itg_cli.OverwriteException:
+        no_highlights.print("Keeping old song.")
+        typer.Exit(1)
     title = " ".join(
         (
             f"Added [bold green]{sf.title}[/]",
@@ -175,7 +183,6 @@ def add_song(
             }[/]",
         )
     )
-
     no_highlights.print(Panel(content, title=title, expand=False))
 
 
