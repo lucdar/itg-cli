@@ -1,7 +1,6 @@
 import sys
 from pygments import highlight
 import typer
-import itg_cli
 from pathlib import Path
 from rich import print
 from rich.columns import Columns
@@ -11,6 +10,7 @@ from rich.prompt import Confirm
 from simfile.dir import SimfilePack
 from simfile.types import Simfile
 from typing import Annotated, Callable, Optional, TypeAlias, TypeVar
+from itg_cli import *
 from itg_cli import __version__
 from itg_cli._config import CLISettings
 from itg_cli._utils import get_charts_string
@@ -75,7 +75,7 @@ OverwriteOption: TypeAlias = Annotated[
 
 
 @cli.command("init-config")
-def init_config(
+def init_config_command(
     path: Annotated[Optional[Path], typer.Argument()] = DEFAULT_CONFIG_PATH,
     overwrite: OverwriteOption = False,
 ):
@@ -103,7 +103,7 @@ def init_config(
 
 
 @cli.command("add-pack")
-def add_pack(
+def add_pack_command(
     path_or_url: Annotated[
         str, typer.Argument(help="path or URL to the pack to add")
     ],
@@ -113,7 +113,7 @@ def add_pack(
     """Add a pack from a supplied link or path."""
     config = CLISettings(config_path)
     try:
-        pack, num_courses = itg_cli.add_pack(
+        pack, num_courses = add_pack(
             path_or_url,
             config.packs,
             config.courses,
@@ -121,7 +121,7 @@ def add_pack(
             overwrite=or_callback(overwrite, pack_overwrite_handler),
             delete_macos_files_flag=config.delete_macos_files,
         )
-    except itg_cli.OverwriteException:
+    except OverwriteException:
         no_highlights.print("Keeping old pack.")
         raise typer.Exit(1)
     songs = list(pack.simfiles(strict=False))
@@ -143,7 +143,7 @@ def add_pack(
 
 
 @cli.command("add-song")
-def add_song(
+def add_song_command(
     path_or_url: Annotated[
         str, typer.Argument(help="path or URL to the song to add")
     ],
@@ -155,7 +155,7 @@ def add_song(
     """
     config = CLISettings(config_path)
     try:
-        sf, loc = itg_cli.add_song(
+        sf, loc = add_song(
             path_or_url,
             config.singles,
             cache=config.cache,
@@ -163,7 +163,7 @@ def add_song(
             overwrite=or_callback(overwrite, song_overwrite_handler),
             delete_macos_files_flag=config.delete_macos_files,
         )
-    except itg_cli.OverwriteException:
+    except OverwriteException:
         no_highlights.print("Keeping old song.")
         raise typer.Exit(1)
     title = " ".join(
@@ -187,7 +187,7 @@ def add_song(
 
 
 @cli.command()
-def censor(
+def censor_command(
     path: Annotated[str, typer.Argument(help="path to the song to censor")],
     config_path: ConfigOption = DEFAULT_CONFIG_PATH,
 ):
@@ -196,17 +196,17 @@ def censor(
     from players.
     """
     config = CLISettings(config_path)
-    itg_cli.censor(Path(path), config.packs, config.cache)
+    censor(Path(path), config.packs, config.cache)
 
 
 @cli.command()
-def uncensor(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
+def uncensor_command(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
     """
     Display a list of censored songs and prompts you to select one to
     uncensor.
     """
     config = CLISettings(config_path)
-    itg_cli.uncensor(config.packs)
+    uncensor(config.packs)
 
 
 def version_callback(run: bool):
@@ -229,7 +229,7 @@ def typer_entry(
 ):
     # Check config and create default config if none supplied
     if "init-config" not in sys.argv and not DEFAULT_CONFIG_PATH.exists():
-        init_config(DEFAULT_CONFIG_PATH)
+        init_config_command(DEFAULT_CONFIG_PATH)
 
 
 if __name__ == "__main__":
