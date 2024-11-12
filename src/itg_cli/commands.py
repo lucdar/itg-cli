@@ -42,8 +42,8 @@ def add_pack(
 
     If there is already an existing pack in `packs` with the same
     folder name, the supplied `overwrite` function is called on the new and old
-    SimfilePacks. If `overwrite` returns true, the old pack is overwritten by the
-    supplied pack; if false, an OverwriteException is raised.
+    SimfilePacks. If `overwrite` returns true, the old pack is overwritten by
+    the supplied pack; if false, an OverwriteException is raised.
 
     Returns:
         a tuple containing a `SimfilePack` object of the added pack and the
@@ -118,9 +118,9 @@ def add_song(
     .sm files), an exception will be raised.
 
     If there is already an existing song in `singles` with the same
-    folder name, the supplied `overwrite` function is called on the new and old
-    simfiles. If `overwrite` returns true, the old song is overwritten by the
-    supplied song; if false, an OverwriteException is raised.
+    folder name, the supplied `overwrite` function is called on the new and
+    old simfiles. If `overwrite` returns true, the old song is overwritten by
+    the supplied song; if false, an OverwriteException is raised.
 
     Returns:
         a tuple containing the Simfile object of the added song and the path
@@ -171,7 +171,7 @@ def add_song(
     return simfile.opendir(dest, strict=False)
 
 
-def censor(path: Path, packs: Path, cache: Path) -> None:
+def censor(path: Path, packs: Path, cache: Path) -> Simfile:
     """
     Moves the song in the supplied `path` to `packs`/.censored, hiding it from
     players. `path` must be a subdirectory of `packs` or an exception
@@ -180,24 +180,21 @@ def censor(path: Path, packs: Path, cache: Path) -> None:
     path = path.absolute()
     # Validate supplied path to sm folder
     if not path.exists():
-        raise Exception(f"Error: {str(path)} does not exist")
+        raise FileNotFoundError(f"{path} does not exist")
     if not path.is_relative_to(packs):
         raise Exception(f"Supplied path {path} is not a pack in {packs}")
     try:
         sm, _ = simfile.opendir(path, strict=False)
     except Exception as e:
         raise Exception(f"{path} is not a valid simfile directory: {e}")
-
     # Move the simfile to the censored folder under the same pack subdirectory
     pack_and_song = path.relative_to(packs)
     destination = packs / ".censored" / pack_and_song
     shutil.move(path, destination)
-
     # Remove the song's cache entry if it exists
-    cache_entry_name = f"Songs_{path.name}_{path.parent.name}"
-    cache.joinpath("Songs", cache_entry_name).unlink(missing_ok=True)
-
-    print(f"Censored {sm.title} from {path.parent.name}.")
+    cache_entry = "_".join([packs.name, path.parent.name, path.name])
+    cache.joinpath("Songs", cache_entry).unlink(missing_ok=True)
+    return sm
 
 
 def uncensor(packs: Path) -> None:

@@ -93,7 +93,7 @@ def typer_entry(
         ),
     ] = False,
 ):
-    # Automatically create default config if it doesn't exist and none supplied
+    # Initialize config if it doesn't exist
     if not DEFAULT_CONFIG_PATH.exists() and "init-config" not in sys.argv:
         init_config_command(DEFAULT_CONFIG_PATH)
 
@@ -221,7 +221,8 @@ def censor_command(
     from players.
     """
     config = CLISettings(config_path)
-    censor(Path(path), config.packs, config.cache)
+    sm = censor(Path(path), config.packs, config.cache)
+    print(f"Censored {sm.title}.")
 
 
 @cli.command()
