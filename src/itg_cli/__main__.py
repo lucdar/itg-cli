@@ -222,18 +222,21 @@ def censor_command(
     """
     config = CLISettings(config_path)
     sm = censor(Path(path), config.packs, config.cache)
-    no_highlights.print(f"Censored [bold]{sm.title}.")
+    no_highlights.print(f"Censored [bold]{sm.title}.[/]")
 
 
 @cli.command("uncensor")
 def uncensor_command(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
     """
-    Display a list of censored songs and prompts you to select one to
-    uncensor.
+    Select a song to uncensor from those currently censored.
     """
     config = CLISettings(config_path)
-    sm = uncensor(config.packs)
-    no_highlights.print(f"Uncensored [bold]{sm.title}.")
+    try:
+        sm = uncensor(config.packs)
+    except UncensorException:
+        print("No censored songs.")
+        raise typer.Exit(1)
+    no_highlights.print(f"Uncensored [bold]{sm.title}[/].")
 
 
 if __name__ == "__main__":
