@@ -123,7 +123,7 @@ def add_pack(
         )
     except itg_cli.OverwriteException:
         no_highlights.print("Keeping old pack.")
-        typer.Exit(1)
+        raise typer.Exit(1)
     songs = list(pack.simfiles(strict=False))
     # print pack metadata
     title = " ".join(
@@ -165,7 +165,7 @@ def add_song(
         )
     except itg_cli.OverwriteException:
         no_highlights.print("Keeping old song.")
-        typer.Exit(1)
+        raise typer.Exit(1)
     title = " ".join(
         (
             f"Added [bold green]{sf.title}[/]",
