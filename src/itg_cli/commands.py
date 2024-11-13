@@ -118,7 +118,7 @@ def add_song(
     contained song to `singles`. Supplied local files are not changed/moved.
 
     In the case of multiple valid songs (multiple folders containing
-    .sm files), an exception will be raised.
+    .sm/.ssc files), an exception will be raised.
 
     If there is already an existing song in `singles` with the same
     folder name, the supplied `overwrite` function is called on the new and
@@ -202,9 +202,8 @@ def censor(path: Path, packs: Path, cache: Path) -> Simfile:
 
 def get_censored(packs: Path) -> list[tuple[Simfile, str]]:
     """
-    Returns the contents of `packs/.censored` as a list of (`simfile`, `path`)
-    pairs where `path` is the path to the sm/ssc file. (Each element is the
-    result of a call to simfile.opendir)
+    Returns the simfiles in `packs/.censored` as a list of (`simfile`, `path`)
+    pairs where `path` is the path to the .sm/.ssc file.
     """
     out = []
     censored = packs / ".censored"
