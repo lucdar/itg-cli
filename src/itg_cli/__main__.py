@@ -13,7 +13,6 @@ from typing import Annotated, Callable, Optional, TypeAlias, TypeVar
 from itg_cli import *
 from itg_cli import __version__
 from itg_cli._config import CLISettings
-from itg_cli._utils import get_charts_string
 
 DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
 
@@ -161,7 +160,10 @@ def add_pack_command(
         )
     )
     columns = Columns(
-        (f"[bold]{get_charts_string(song)}[/] {song.title}" for song in songs),
+        (
+            f"[bold]{[int(c.meter) for c in song.charts]}[/] {song.title}"
+            for song in songs
+        ),
         expand=True,
     )
     no_highlights.print(Panel(columns, title=title))

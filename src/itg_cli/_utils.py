@@ -5,10 +5,8 @@ import requests
 import shutil
 from itertools import chain
 from pathlib import Path
-from simfile.types import Simfile, Chart
 from tqdm import tqdm
 from typing import Iterable, Optional
-from rich.prompt import Confirm
 
 
 def simfile_paths(path: Path) -> Iterable[Path]:
@@ -26,31 +24,10 @@ def simfile_paths(path: Path) -> Iterable[Path]:
     return filter(path_filter, chain(sms, sscs))
 
 
-def get_charts_string(sm: Simfile, difficulty_labels: bool = False) -> str:
-    """
-    Returns the string representation of chart meters of a simfile (with
-    quotes removed). Also includes the difficulty label if `difficulty_labels`
-    is True.
-
-    Example:
-        `get_charts_string(sm)`
-        returns: `"[5, 7, 10, 12]"`
-        `get_charts_string(sm, difficulty_labels=True)`
-        returns: `"[Easy 5, Medium 7, Hard 10, Challenge 12]"`
-    """
-
-    def fn(c: Chart):
-        if difficulty_labels:
-            return f"{c.difficulty} {c.meter}"
-        else:
-            return c.meter
-
-    return str([fn(c) for c in sm.charts]).replace("'", "")
-
-
 def delete_macos_files(path: Path) -> None:
     """Deletes all `._` files in the supplied path"""
-    list(map(Path.unlink, path.rglob("._*")))
+    for p in path.rglob("._*"):
+        Path.unlink(p)
 
 
 def extract(archive_path: Path) -> Path:
@@ -67,14 +44,6 @@ def extract(archive_path: Path) -> Path:
     print("Extracting archive...")
     shutil.unpack_archive(archive_path, dest)
     return dest
-
-
-def prompt_overwrite(item: str) -> bool:
-    """
-    Prompts the user to overwrite the existing `item`.
-    Overwriting returns `True`, Keeping returns `False`.
-    """
-    return Confirm.ask(f"Overwrite existing {item}?", default=True)
 
 
 def setup_working_dir(
