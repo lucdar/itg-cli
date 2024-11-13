@@ -1,7 +1,6 @@
 import sys
 import typer
 from pathlib import Path
-from rich import print
 from rich.columns import Columns
 from rich.console import Console
 from rich.panel import Panel
@@ -15,7 +14,7 @@ from itg_cli._config import CLISettings
 
 DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
 
-no_highlights = Console(highlight=False)
+print = Console(highlight=False).print
 
 
 ## Overwrite Handlers ##
@@ -44,7 +43,7 @@ def pack_overwrite_handler(new: SimfilePack, old: SimfilePack) -> bool:
         prompt += f"{-diff} more songs)."
     else:
         prompt += "the same number of songs)."
-    no_highlights.print(prompt)
+    print(prompt)
     return Confirm.ask("Overwrite existing pack?", default=True)
 
 
@@ -53,7 +52,7 @@ def song_overwrite_handler(
 ) -> bool:
     old_path = Path(old[1])
     pack_and_song_folder = old_path.parent.relative_to(old_path.parents[2])
-    no_highlights.print(f"[bold]{pack_and_song_folder}[/] already exists.")
+    print(f"[bold]{pack_and_song_folder}[/] already exists.")
     return Confirm.ask("Overwrite existing simfile?", default=True)
 
 
@@ -146,7 +145,7 @@ def add_pack_command(
             delete_macos_files_flag=config.delete_macos_files,
         )
     except OverwriteException:
-        no_highlights.print("Keeping old pack.")
+        print("Keeping old pack.")
         raise typer.Exit(1)
     songs = list(pack.simfiles(strict=False))
     # print pack metadata
@@ -166,7 +165,7 @@ def add_pack_command(
         ),
         expand=True,
     )
-    no_highlights.print(Panel(columns, title=title))
+    print(Panel(columns, title=title))
 
 
 @cli.command("add-song")
@@ -191,7 +190,7 @@ def add_song_command(
             delete_macos_files_flag=config.delete_macos_files,
         )
     except OverwriteException:
-        no_highlights.print("Keeping old song.")
+        print("Keeping old song.")
         raise typer.Exit(1)
     title = " ".join(
         (
@@ -210,7 +209,7 @@ def add_song_command(
             }[/]",
         )
     )
-    no_highlights.print(Panel(content, title=title, expand=False))
+    print(Panel(content, title=title, expand=False))
 
 
 @cli.command("censor")
@@ -224,7 +223,7 @@ def censor_command(
     """
     config = CLISettings(config_path)
     sm = censor(Path(path), config.packs, config.cache)
-    no_highlights.print(f"Censored [bold]{sm.title}.[/]")
+    print(f"Censored [bold]{sm.title}.[/]")
 
 
 @cli.command("uncensor")
@@ -238,7 +237,7 @@ def uncensor_command(config_path: ConfigOption = DEFAULT_CONFIG_PATH):
     except UncensorException:
         print("No censored songs.")
         raise typer.Exit(1)
-    no_highlights.print(f"Uncensored [bold]{sm.title}[/].")
+    print(f"Uncensored [bold]{sm.title}[/].")
 
 
 if __name__ == "__main__":
