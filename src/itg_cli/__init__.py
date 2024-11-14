@@ -17,4 +17,4 @@ __all__ = [
     "OverwriteException",
     "UncensorException",
 ]
-__version__ = "0.1.1"
+__version__ = "1.0.0"
