@@ -27,16 +27,27 @@ Install via pip (for use as a module):
 pip install itg-cli
 ```
 
+```python
+from itg_cli import *
+from pathlib import Path
+
+packs = Path("/path/to/packs")
+courses = Path("/path/to/courses")
+
+add_pack("https://omid.gg/THC", packs, courses)
+```
+
 ## Configuring
 
-Running `itg-cli` will generate a config file if one is not found at the default
+`itg-cli` will generate a config file if one is not found at the default
 location. This location and the default values vary depending on the platform
 (see below). The location of the created config file will be output by the
 program after it's created.
 
 The `init-config` command is used to write a default config file to a location
-of your choice (or the default location if none is supplied). You can supply this
-config file to other commands by passing it using the `--config` parameter.
+of your choice (or the default location if none is supplied). You can supply
+this config file to other commands by passing it using the `--config`
+parameter.
 
 If your itgmania data folder location is not listed below (e.g. you are using a
 portable install), you will need to manually edit this config file in the text
@@ -76,7 +87,7 @@ MacOS: ~/Library/Application Support/ITGMania
     itg-cli add-song "https://cdn.discordapp.com/attachments/529867916833718294/1286510412262805524/Love_Bomb.zip?ex=66ee2bb0&is=66ecda30&hm=6c6ac229657a01b0f48995ed236a22889502c5407478cfe6151596f4355ca7b4&"
     ```
 
-* `censor` Move a song in your packs folder to packs/.censored/Pack/Folder, hiding it from players.
+* `censor` Move a song in your packs folder to packs/.censored/\[pack]/\[SongFolder], hiding it from players.
 
     ```Bash
     itg-cli censor "path/to/Songs/7gays1pack/Stupid Hoe/"
@@ -95,7 +106,9 @@ MacOS: ~/Library/Application Support/ITGMania
 
 ## Contributing
 
-This project is under active development, and my first published/marketed open source project, so I'm still learning how all this works in practice. That being said, I'll try to respond to any PRs or issues, though this may change in the future.
+This project is my first published/marketed open source project, so I'm still
+learning how all this works in practice. That being said, If you run into any bugs
+or have ideas for new features, please feel free to create an [issue](https://github.com/lucdar/itg-cli/issues) or [pull request](https://github.com/lucdar/itg-cli/pulls).
 
 ## License
 
