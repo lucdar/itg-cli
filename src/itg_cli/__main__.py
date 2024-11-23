@@ -1,5 +1,4 @@
 import sys
-from pygments import highlight
 import typer
 from pathlib import Path
 from rich import print
@@ -71,6 +70,7 @@ OverwriteOption: TypeAlias = Annotated[
         help="automatically overwrite without confirming",
     ),
 ]
+cli = typer.Typer(no_args_is_help=True)
 
 
 ## Version Flag ##
