@@ -149,13 +149,12 @@ def add_pack_command(
         raise typer.Exit(1)
     songs = list(pack.simfiles(strict=False))
     # print pack metadata
+    plural = "s" if num_courses != 1 else ""
     title = " ".join(
         (
             f"\nAdded [bold green]{pack.name}[/]",
             f"with [blue]{len(songs)}[/] songs",
-            f"and [blue]{num_courses}[/] {
-                "courses" if num_courses != 1 else "course"
-            }",
+            f"and [blue]{num_courses}[/] course{plural}",
         )
     )
     columns = Columns(
@@ -198,15 +197,14 @@ def add_song_command(
             f"to {Path(loc).parents[1].name}",
         )
     )
+    chart_list = ("\n" + " " * 8).join(
+        [f"[blue]{c.meter}[/] {c.description}" for c in sf.charts]
+    )
     content = "\n".join(
         (
             f" Title: [bold]{sf.title}[/]",
             f"Artist: [bold]{sf.artist}[/]",
-            f"Charts: [bold]{
-                ("\n" + " " * 8).join(
-                    [f"[blue]{c.meter}[/] {c.description}" for c in sf.charts]
-                )
-            }[/]",
+            f"Charts: [bold]{chart_list}[/]",
         )
     )
     print(Panel(content, title=title, expand=False))
