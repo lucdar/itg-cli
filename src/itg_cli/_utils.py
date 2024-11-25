@@ -39,6 +39,11 @@ def extract(archive_path: Path) -> Path:
     formats:
     `zip, tar, gztar, bztar, xztar`
     """
+    valid_suffixes = [".zip", ".tar", ".xz", ".bz", ".xz"]
+    if archive_path.suffix not in valid_suffixes:
+        raise ValueError(
+            "Invalid or unsupported archive format: {archive_path.suffix}"
+        )
     dest = archive_path.with_suffix("")
     dest.mkdir()
     print("Extracting archive...")
