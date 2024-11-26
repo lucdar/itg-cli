@@ -31,3 +31,6 @@ itg-cli = "itg_cli.__main__:cli"
 
 [tool.setuptools.dynamic]
 version = {attr = "itg_cli.__version__"}
+
+[tool.setuptools.package-data]
+itg_cli = ["config_template.toml"]
