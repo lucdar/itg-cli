@@ -1,3 +1,4 @@
+import sys
 import gdown
 import os
 import pyrfc6266
@@ -46,7 +47,7 @@ def extract(archive_path: Path) -> Path:
         )
     dest = archive_path.with_suffix("")
     dest.mkdir()
-    print("Extracting archive...")
+    print("Extracting archive...", file=sys.stderr)
     shutil.unpack_archive(archive_path, dest)
     return dest
 
@@ -92,7 +93,7 @@ def download_file(url: str, downloads: Path) -> Path:
     """
     # TODO: handle mega.nz links
     if "drive.google.com" in url or "drive.usercontent.google.com" in url:
-        print("Making request to Google Drive...")
+        print("Making request to Google Drive...", file=sys.stderr)
         download_path = gdown.download(
             url,
             quiet=False,
@@ -101,7 +102,7 @@ def download_file(url: str, downloads: Path) -> Path:
         )
         return Path(download_path)
     else:  # try using requests
-        print(f"Making request to {url}...")
+        print(f"Making request to {url}...", file=sys.stderr)
         response = requests.get(url, allow_redirects=True, stream=True)
         validate_response(response)
         filename = get_download_filename(response)
