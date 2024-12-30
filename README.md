@@ -40,9 +40,8 @@ add_pack("https://omid.gg/THC", packs, courses)
 ## Configuring
 
 `itg-cli` will generate a config file if one is not found at the default
-location. This location and the default values vary depending on the platform
-(see below). The location of the created config file will be output by the
-program after it's created.
+location. This location and the default values vary depending on the platform.
+The location of the created config file will be output by after it's created.
 
 The `init-config` command is used to write a default config file to a location
 of your choice (or the default location if none is supplied). You can supply
@@ -62,7 +61,8 @@ MacOS: ~/Library/Application Support/ITGMania
 
 ## Usage
 
-* `add-pack` adds a pack from the supplied path or link to your configured `packs` directory.
+* `add-pack` adds a pack from the supplied path or link to your configured `packs`
+  directory.
   
     ```Bash
     # Supports links to local .zip files
@@ -76,7 +76,8 @@ MacOS: ~/Library/Application Support/ITGMania
     itg-cli add-pack "https://drive.google.com/file/d/18XoCKcA7N4ptE6U7wOJIJgfVwTAyuA10/view"
     ```
 
-* `add-song` adds a song from the supplied path or link to your configured `singles` directory.
+* `add-song` adds a song from the supplied path or link to your configured
+  `singles` directory.
 
     ```Bash
     # Supports links to local .zip files
@@ -87,13 +88,15 @@ MacOS: ~/Library/Application Support/ITGMania
     itg-cli add-song "https://cdn.discordapp.com/attachments/529867916833718294/1286510412262805524/Love_Bomb.zip?ex=66ee2bb0&is=66ecda30&hm=6c6ac229657a01b0f48995ed236a22889502c5407478cfe6151596f4355ca7b4&"
     ```
 
-* `censor` Move a song in your packs folder to packs/.censored/\[pack]/\[SongFolder], hiding it from players.
+* `censor` Move a song in your packs folder to packs/.censored/\[pack]/\[SongFolder],
+  hiding it from players.
 
     ```Bash
     itg-cli censor "path/to/Songs/7gays1pack/Stupid Hoe/"
     ```
 
-* `uncensor` displays a list of songs that have been censored and prompts you to select a file to uncensor.
+* `uncensor` displays a list of songs that have been censored and prompts you to
+  select a file to uncensor.
 
     ```Bash
     $ itg-cli uncensor
