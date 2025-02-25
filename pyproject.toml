@@ -14,7 +14,7 @@ keywords = ["itg", "cli", "python", "itgmania", "stepmania"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3.9"
+  "Programming Language :: Python :: 3.10"
 ]
 readme = "README.md"
 license = {file = "LICENSE"}

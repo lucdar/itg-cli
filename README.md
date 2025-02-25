@@ -6,11 +6,11 @@ also be imported as a package for use in a Python project.
 
 ## Setup
 
-Make sure you have python 3.9 or newer installed.
+Make sure you have python 3.10 or newer installed.
 
 ```Bash
 $ python --version
-Python 3.9.20
+Python 3.10.19
 ```
 
 Install via pipx (recommended):
