@@ -8,6 +8,7 @@ from itertools import chain
 from pathlib import Path
 from tqdm import tqdm
 from typing import Iterable, Optional
+from urllib.parse import urlparse, parse_qs
 
 
 def simfile_paths(path: Path) -> Iterable[Path]:
@@ -92,6 +93,12 @@ def download_file(url: str, downloads: Path) -> Path:
     to download other files using requests. Prints a progress bar to stderr.
     """
     # TODO: handle mega.nz links
+    parsed_url = urlparse(url)
+    if "google.com" in parsed_url.netloc and "/url" in parsed_url.path:
+        parsed_query = parse_qs(parsed_url.query)
+        url = parsed_query["q"][0]
+        parsed_url = urlparse(url)
+        print(f"Redirecting to {url}...", file=sys.stderr)
     if "drive.google.com" in url or "drive.usercontent.google.com" in url:
         print("Making request to Google Drive...", file=sys.stderr)
         download_path = gdown.download(
@@ -104,6 +111,10 @@ def download_file(url: str, downloads: Path) -> Path:
     else:  # try using requests
         print(f"Making request to {url}...", file=sys.stderr)
         response = requests.get(url, allow_redirects=True, stream=True)
+        parsed_redirected_url = urlparse(response.url)
+        if parsed_redirected_url.netloc != parsed_url.netloc:
+            # potential case where redirected url is a gdrive link
+            return download_file(response.url, downloads)
         validate_response(response)
         filename = get_download_filename(response)
         dest = downloads.joinpath(filename)
