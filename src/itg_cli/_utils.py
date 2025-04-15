@@ -95,11 +95,12 @@ def download_file(url: str, downloads: Path) -> Path:
     # TODO: handle mega.nz links
     parsed_url = urlparse(url)
     if "google.com" in parsed_url.netloc and "/url" in parsed_url.path:
+        # follow redirects from google sheets links
         parsed_query = parse_qs(parsed_url.query)
         url = parsed_query["q"][0]
         parsed_url = urlparse(url)
         print(f"Redirecting to {url}...", file=sys.stderr)
-    if "drive.google.com" in url or "drive.usercontent.google.com" in url:
+    if "drive.google.com" in parsed_url.netloc or "drive.usercontent.google.com" in parsed_url.netloc:
         print("Making request to Google Drive...", file=sys.stderr)
         download_path = gdown.download(
             url,

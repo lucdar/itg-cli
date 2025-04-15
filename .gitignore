@@ -163,4 +163,4 @@ cython_debug/
 .temp/
 .censored/
 settings.toml
-.vscode/*
+.vscode/
