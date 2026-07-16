@@ -5,11 +5,15 @@ dependencies = [
     "simfile==2.1.1",
     "gdown>=5.2.0",
     "pyrfc6266>=1.0.2",
+    "requests>=2.32.0",
+    "rich>=13.0.0",
     "tomlkit>=0.13.2",
+    "tqdm>=4.66.0",
     "typer>=0.12.5",
+    "setuptools<80.0.0",
 ]
-requires-python = ">=3.10"
-authors = [{name = "Lucas Clark"}]
+requires-python = ">=3.10,<3.13"
+authors = [{name = "Celeste Clark"}]
 keywords = ["itg", "cli", "python", "itgmania", "stepmania"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -20,7 +24,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 
 [project.urls]
-Repository = "https://github.com/lucdar/itg-cli"
+Repository = "https://github.com/celex3/itg-cli"
 
 [build-system]
 requires = ["setuptools"]
@@ -34,3 +38,16 @@ version = {attr = "itg_cli.__version__"}
 
 [tool.setuptools.package-data]
 itg_cli = ["config_template.toml"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.8",
+]
+
+[tool.ruff]
+line-length = 79
+src = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

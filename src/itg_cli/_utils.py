@@ -41,10 +41,10 @@ def extract(archive_path: Path) -> Path:
     formats:
     `zip, tar, gztar, bztar, xztar`
     """
-    valid_suffixes = [".zip", ".tar", ".xz", ".bz", ".xz"]
+    valid_suffixes = [".zip", ".tar", ".gz", ".tgz", ".bz2", ".xz"]
     if archive_path.suffix not in valid_suffixes:
         raise ValueError(
-            "Invalid or unsupported archive format: {archive_path.suffix}"
+            f"Invalid or unsupported archive format: {archive_path.suffix}"
         )
     dest = archive_path.with_suffix("")
     dest.mkdir()
@@ -108,10 +108,17 @@ def download_file(url: str, downloads: Path) -> Path:
             fuzzy=True,
             output=os.path.join(downloads, ""),  # Append trailing `/`
         )
+        if download_path is None:
+            raise Exception(
+                f"Google Drive download failed for {url}. The file may be "
+                "access-restricted or subject to a download quota."
+            )
         return Path(download_path)
     else:  # try using requests
         print(f"Making request to {url}...", file=sys.stderr)
-        response = requests.get(url, allow_redirects=True, stream=True)
+        response = requests.get(
+            url, allow_redirects=True, stream=True, timeout=30
+        )
         parsed_redirected_url = urlparse(response.url)
         if parsed_redirected_url.netloc != parsed_url.netloc:
             # potential case where redirected url is a gdrive link
@@ -125,8 +132,16 @@ def download_file(url: str, downloads: Path) -> Path:
         return dest
 
 
+VALID_CONTENT_TYPES = [
+    "application/zip",
+    "application/x-zip-compressed",
+    "application/octet-stream",
+]
+
+
 def validate_response(
-    r: requests.Response, valid_content_types: list[str] = ["application/zip"]
+    r: requests.Response,
+    valid_content_types: list[str] = VALID_CONTENT_TYPES,
 ) -> None:
     """
     Validates a request response.
@@ -142,8 +157,9 @@ def validate_response(
         )
     if "Content-Type" not in r.headers:
         raise Exception("No Content-Type header found")
-    if r.headers["Content-Type"] not in valid_content_types:
-        raise Exception("Invalid Content-Type:", r.headers["Content-Type"])
+    content_type = r.headers["Content-Type"].split(";")[0].strip()
+    if content_type not in valid_content_types:
+        raise Exception(f"Invalid Content-Type: {content_type}")
 
 
 def get_download_filename(r: requests.Response) -> str:
@@ -152,7 +168,11 @@ def get_download_filename(r: requests.Response) -> str:
     url's basename, or defaults to "download.zip"
     """
     if "Content-Disposition" in r.headers:
-        return Path(pyrfc6266.parse_filename(r.headers["Content-Disposition"]))
+        parsed = pyrfc6266.parse_filename(r.headers["Content-Disposition"])
+        # Take the basename in case the header contains path separators
+        name = Path(parsed.replace("\\", "/")).name
+        if name:
+            return name
     name = os.path.basename(r.url)
     if name.endswith(".zip"):
         return name

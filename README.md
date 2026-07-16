@@ -41,7 +41,7 @@ add_pack("https://omid.gg/THC", packs, courses)
 
 `itg-cli` will generate a config file if one is not found at the default
 location. This location and the default values vary depending on the platform.
-The location of the created config file will be output by after it's created.
+The location of the created config file will be printed after it's created.
 
 The `init-config` command is used to write a default config file to a location
 of your choice (or the default location if none is supplied). You can supply
@@ -111,7 +111,7 @@ MacOS: ~/Library/Application Support/ITGMania
 
 This project is my first published/marketed open source project, so I'm still
 learning how all this works in practice. That being said, If you run into any bugs
-or have ideas for new features, please feel free to create an [issue](https://github.com/lucdar/itg-cli/issues) or [pull request](https://github.com/lucdar/itg-cli/pulls).
+or have ideas for new features, please feel free to create an [issue](https://github.com/celex3/itg-cli/issues) or [pull request](https://github.com/celex3/itg-cli/pulls).
 
 ## License
 
