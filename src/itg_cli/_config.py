@@ -49,7 +49,7 @@ class CLISettings:
                 raise ConfigError(f"Missing table ({table}) in config: {self.location}")
         required = toml_doc["required"]
         for key in ["root", "singles_pack_name", "delete_macos_files"]:
-            if required.get(key) is None:
+            if required.get(key) is None or required.get(key) == "":
                 raise ConfigError(
                     f"Required field ({key}) is empty or unbound in config: {self.location}"
                 )
@@ -79,7 +79,12 @@ class CLISettings:
         root, cache = None, None
         match platform.system():
             case "Windows":
-                root = Path(os.getenv("APPDATA")) / "ITGmania"
+                appdata = os.getenv("APPDATA")
+                if not appdata:
+                    raise ConfigError(
+                        "APPDATA environment variable is not set."
+                    )
+                root = Path(appdata) / "ITGmania"
             case "Linux":
                 # TODO: verify/add new locations
                 root = Path.home() / ".itgmania"

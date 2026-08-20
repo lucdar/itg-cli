@@ -1,11 +1,11 @@
 from itg_cli.commands import (
+    OverwriteException,
+    UncensorException,
     add_pack,
     add_song,
     censor,
     get_censored,
     uncensor,
-    OverwriteException,
-    UncensorException,
 )
 
 __all__ = [
@@ -17,4 +17,4 @@ __all__ = [
     "OverwriteException",
     "UncensorException",
 ]
-__version__ = "1.0.4"
+__version__ = "1.0.8"

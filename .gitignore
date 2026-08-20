@@ -164,3 +164,6 @@ cython_debug/
 .censored/
 settings.toml
 .vscode/
+
+# Nix build output
+result

@@ -20,7 +20,7 @@ UncensorPicker: TypeAlias = Callable[[list[tuple[Simfile, str]]], int]
 
 
 class OverwriteException(Exception):
-    """Rasied when an existing pack or simfile is not overwritten."""
+    """Raised when an existing pack or simfile is not overwritten."""
 
 
 class UncensorException(Exception):
@@ -79,7 +79,6 @@ def add_pack(
         if delete_macos_files_flag:
             delete_macos_files(pack_path)
         pack = SimfilePack(pack_path)
-        songs = list(pack.simfiles(strict=False))
 
         # check if pack already exists
         dest = packs.joinpath(pack_path.name)
@@ -90,11 +89,12 @@ def add_pack(
                 raise OverwriteException("Pack already exists.")
             shutil.rmtree(dest)
 
-        # look for a Courses folder countaining .crs files
+        # look for a Courses folder containing .crs files
         num_courses = 0
-        courses_subfolder = courses.joinpath(pack.name)
-        courses_subfolder.mkdir(exist_ok=True)
         crs_parent_dirs = {p.parent for p in working_dir.rglob("*.crs")}
+        if crs_parent_dirs:
+            courses_subfolder = courses.joinpath(pack.name)
+            courses_subfolder.mkdir(exist_ok=True)
         for crs_parent_dir in crs_parent_dirs:
             for file in filter(Path.is_file, crs_parent_dir.iterdir()):
                 file.replace(courses_subfolder.joinpath(file.name))
@@ -170,7 +170,7 @@ def add_song(
         shutil.move(simfile_root, dest)
 
     if delete_macos_files_flag:
-        delete_macos_files(simfile_root)
+        delete_macos_files(dest)
     return simfile.opendir(dest, strict=False)
 
 
@@ -180,7 +180,8 @@ def censor(path: Path, packs: Path, cache: Path) -> Simfile:
     players. `path` must be a subdirectory of `packs` or an exception
     will be raised.
     """
-    path = path.absolute()
+    path = path.resolve()
+    packs = packs.resolve()
     # Validate supplied path to sm folder
     if not path.exists():
         raise FileNotFoundError(f"{path} does not exist")
@@ -193,6 +194,7 @@ def censor(path: Path, packs: Path, cache: Path) -> Simfile:
     # Move the simfile to the censored folder under the same pack subdirectory
     pack_and_song = path.relative_to(packs)
     destination = packs / ".censored" / pack_and_song
+    destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(path, destination)
     # Remove the song's cache entry if it exists
     cache_entry = "_".join([packs.name, path.parent.name, path.name])
@@ -207,6 +209,8 @@ def get_censored(packs: Path) -> list[tuple[Simfile, str]]:
     """
     out = []
     censored = packs / ".censored"
+    if not censored.is_dir():
+        return out
     for pack in filter(Path.is_dir, censored.iterdir()):
         for simfile_path in filter(Path.is_dir, pack.iterdir()):
             out.append(simfile.opendir(simfile_path, strict=False))
@@ -248,6 +252,7 @@ def uncensor(
     chosen_path = Path(censored[picker(censored)][1]).parent
     pack_and_song = chosen_path.relative_to(packs / ".censored")
     destination = packs.joinpath(pack_and_song)
+    destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(chosen_path, destination)
 
     return simfile.opendir(destination)[0]

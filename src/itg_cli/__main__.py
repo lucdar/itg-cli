@@ -1,4 +1,3 @@
-import sys
 import typer
 from pathlib import Path
 from rich.columns import Columns
@@ -8,8 +7,15 @@ from rich.prompt import Confirm
 from simfile.dir import SimfilePack
 from simfile.types import Simfile
 from typing import Annotated, Callable, Optional, TypeAlias, TypeVar
-from itg_cli import *
-from itg_cli import __version__
+from itg_cli import (
+    OverwriteException,
+    UncensorException,
+    __version__,
+    add_pack,
+    add_song,
+    censor,
+    uncensor,
+)
 from itg_cli._config import CLISettings
 
 DEFAULT_CONFIG_PATH = Path(typer.get_app_dir("itg-cli")) / "config.toml"
@@ -69,7 +75,6 @@ OverwriteOption: TypeAlias = Annotated[
         help="automatically overwrite without confirming",
     ),
 ]
-cli = typer.Typer(no_args_is_help=True)
 
 
 ## Version Flag ##
@@ -81,6 +86,7 @@ def version_callback(run: bool):
 
 @cli.callback()
 def typer_entry(
+    ctx: typer.Context,
     version: Annotated[
         bool,
         typer.Option(
@@ -92,7 +98,10 @@ def typer_entry(
     ] = False,
 ):
     # Initialize config if it doesn't exist
-    if not DEFAULT_CONFIG_PATH.exists() and "init-config" not in sys.argv:
+    if (
+        not DEFAULT_CONFIG_PATH.exists()
+        and ctx.invoked_subcommand != "init-config"
+    ):
         init_config_command(DEFAULT_CONFIG_PATH)
 
 
@@ -110,7 +119,7 @@ def init_config_command(
         path.exists()
         and not overwrite
         and not Confirm.ask(
-            f"Overwrite existing config with default?", default=True
+            "Overwrite existing config with default?", default=False
         )
     ):
         print(f"[green]Keeping existing config file: [bright_white]{path}")
